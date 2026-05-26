@@ -216,11 +216,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Contextual FAB */}
-      <button className="fixed bottom-margin-desktop right-margin-desktop bg-primary text-on-primary h-14 w-14 rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-50">
-        <span className="material-symbols-outlined text-2xl" data-icon="add">add</span>
-      </button>
     </>
   );
 }

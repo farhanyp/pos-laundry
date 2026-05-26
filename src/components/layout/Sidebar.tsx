@@ -1,18 +1,27 @@
 "use client";
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function Sidebar() {
   const { logoutMutation } = useLogout();
   const user = useAuthStore((state) => state.user);
-  
+  const pathname = usePathname();
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
 
   const isLoggingOut = logoutMutation.isPending;
+
+  const getLinkClassName = (href: string) => {
+    const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+    return isActive
+      ? "bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-200 ease-in-out"
+      : "text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out";
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-full flex flex-col py-6 bg-surface-container-low dark:bg-surface-dim h-screen w-64 border-r border-outline-variant/15 z-50">
@@ -21,23 +30,23 @@ export function Sidebar() {
         <p className="text-on-surface-variant font-body-md text-xs mt-1">Staff Portal • Station #1</p>
       </div>
       <nav className="flex-grow">
-        <Link className="bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="/">
+        <Link className={getLinkClassName("/")} href="/">
           <span className="material-symbols-outlined" data-icon="dashboard">dashboard</span>
           <span className="font-body-md text-body-md">Dashboard</span>
         </Link>
-        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+        <Link className={getLinkClassName("#")} href="#">
           <span className="material-symbols-outlined" data-icon="local_laundry_service">local_laundry_service</span>
           <span className="font-body-md text-body-md">Active Orders</span>
         </Link>
-        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+        <Link className={getLinkClassName("/services")} href="/services">
           <span className="material-symbols-outlined" data-icon="category">category</span>
           <span className="font-body-md text-body-md">Laundry Catalog</span>
         </Link>
-        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+        <Link className={getLinkClassName("/customers")} href="/customers">
           <span className="material-symbols-outlined" data-icon="group">group</span>
           <span className="font-body-md text-body-md">Customer Database</span>
         </Link>
-        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+        <Link className={getLinkClassName("#")} href="#">
           <span className="material-symbols-outlined" data-icon="settings">settings</span>
           <span className="font-body-md text-body-md">Settings</span>
         </Link>
@@ -57,7 +66,7 @@ export function Sidebar() {
               <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{user?.roles?.[0] || "STAFF"}</span>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             className="w-full flex items-center justify-center gap-2 p-2 text-error font-label-md border border-error/20 rounded-lg hover:bg-error/5 transition-colors active:scale-95 duration-150 disabled:opacity-70 disabled:cursor-not-allowed"
