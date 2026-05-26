@@ -6,12 +6,11 @@ import Link from "next/link";
 import { ArrowRight, Loader2, WashingMachine } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { registerUser } from "@/service/register";
 
 export function RegisterForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const supabase = createClient();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -53,78 +52,20 @@ export function RegisterForm() {
 
     startTransition(async () => {
       try {
-        // 1. Sign Up user
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        await registerUser({
+          name: formData.name,
           email: formData.email,
           password: formData.password,
-          options: {
-            data: {
-              name: formData.name,
-            }
-          }
         });
-
-        if (authError) {
-          toast.error(`Gagal mendaftar: ${authError.message}`);
-          return;
-        }
-
-        const userId = authData.user?.id;
-        if (!userId) {
-          toast.error("Gagal mendapatkan data user setelah pendaftaran.");
-          return;
-        }
-
-        // 2. Insert into users table
-        const { error: userError } = await supabase
-          .from("users")
-          .insert({
-            id: userId,
-            name: formData.name,
-            email: formData.email,
-          });
-
-        if (userError) {
-          toast.error("Terjadi kesalahan saat menyimpan profil pengguna.");
-          console.error("User insert error:", userError);
-          return;
-        }
-
-        // 3. Get 'kasir' role id
-        const { data: roleData, error: roleError } = await supabase
-          .from("roles")
-          .select("id")
-          .eq("role_name", "kasir")
-          .single();
-
-        if (roleError || !roleData) {
-          toast.error("Gagal menemukan role kasir di sistem.");
-          console.error("Role fetch error:", roleError);
-          return;
-        }
-
-        // 4. Assign role in user_roles
-        const { error: assignRoleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: userId,
-            role_id: roleData.id,
-          });
-
-        if (assignRoleError) {
-          toast.error("Gagal menetapkan role pada akun Anda.");
-          console.error("Role assign error:", assignRoleError);
-          return;
-        }
 
         toast.success("Registrasi berhasil! Mengalihkan ke dashboard...");
         
         setTimeout(() => {
           router.push("/dashboard");
         }, 1500);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Registration error:", err);
-        toast.error("Terjadi kesalahan sistem yang tidak terduga.");
+        toast.error(err.message || "Terjadi kesalahan sistem yang tidak terduga.");
       }
     });
   };

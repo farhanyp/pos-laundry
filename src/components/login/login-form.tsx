@@ -6,7 +6,7 @@ import Link from "next/link";
 import { WashingMachine, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { loginUser } from "@/service/login";
 
 export function LoginForm() {
   const router = useRouter();
@@ -15,9 +15,6 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Initialize Supabase browser client
-  const supabase = createClient();
 
   useEffect(() => {
     // Check if remember me was set previously
@@ -38,15 +35,7 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error("Gagal masuk: Email atau password salah.");
-        return;
-      }
+      const data = await loginUser({ email, password });
 
       if (data.session) {
         // Handle remember me
@@ -63,8 +52,8 @@ export function LoginForm() {
           router.push("/dashboard");
         }, 1500);
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan pada sistem.");
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan pada sistem.");
       console.error(err);
     } finally {
       setIsLoading(false);
