@@ -58,16 +58,8 @@ export function Sidebar() {
           <span className="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
           <span className="font-body-md text-body-md">Taxes</span>
         </Link>
-        <Link className={getLinkClassName("#")} href="#">
-          <span className="material-symbols-outlined" data-icon="settings">settings</span>
-          <span className="font-body-md text-body-md">Settings</span>
-        </Link>
       </nav>
       <div className="px-2 mt-auto">
-        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest rounded-lg transition-all duration-200" href="#">
-          <span className="material-symbols-outlined" data-icon="help">help</span>
-          <span className="font-body-md text-body-md">Help Support</span>
-        </Link>
         <div className="flex flex-col gap-3 mt-4 p-3 bg-surface-container-highest/30 rounded-xl border border-outline-variant/20">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 shrink-0 rounded-full bg-primary text-on-primary font-display font-bold flex items-center justify-center border border-outline-variant/30 shadow-sm">
