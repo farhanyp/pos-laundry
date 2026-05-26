@@ -6,14 +6,16 @@ import Link from "next/link";
 import { WashingMachine, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { loginUser } from "@/service/login";
+import { useAuth } from "@/hooks/useAuth";
 
 export function LoginForm() {
   const router = useRouter();
+  const { loginMutation } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -35,27 +37,24 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const data = await loginUser({ email, password });
+      await loginMutation.mutateAsync({ email, password });
 
-      if (data.session) {
-        // Handle remember me
-        if (rememberMe) {
-          localStorage.setItem("freshpress_remember_email", email);
-        } else {
-          localStorage.removeItem("freshpress_remember_email");
-        }
-
-        toast.success("Login berhasil! Mengalihkan ke dashboard...");
-
-        // Wait briefly for the toast to be seen before redirecting
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem("freshpress_remember_email", email);
+      } else {
+        localStorage.removeItem("freshpress_remember_email");
       }
+
+      toast.success("Login berhasil! Mengalihkan ke dashboard...");
+
+      // Wait briefly for the toast to be seen before redirecting
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan pada sistem.");
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
   };

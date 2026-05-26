@@ -10,7 +10,7 @@ import { registerUser } from "@/service/register";
 
 export function RegisterForm() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,7 +36,7 @@ export function RegisterForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -50,24 +50,25 @@ export function RegisterForm() {
       return;
     }
 
-    startTransition(async () => {
-      try {
-        await registerUser({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        });
+    setIsLoading(true);
 
-        toast.success("Registrasi berhasil! Mengalihkan ke dashboard...");
-        
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
-      } catch (err: any) {
-        console.error("Registration error:", err);
-        toast.error(err.message || "Terjadi kesalahan sistem yang tidak terduga.");
-      }
-    });
+    try {
+      await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      toast.success("Registrasi berhasil! Silakan login untuk melanjutkan.");
+      
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      toast.error(err.message || "Terjadi kesalahan sistem yang tidak terduga.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,7 +99,7 @@ export function RegisterForm() {
               name="name"
               type="text"
               required
-              disabled={isPending}
+              disabled={isLoading}
               value={formData.name}
               onChange={handleChange}
               placeholder="Contoh: Budi Santoso"
@@ -114,7 +115,7 @@ export function RegisterForm() {
               name="email"
               type="email"
               required
-              disabled={isPending}
+              disabled={isLoading}
               value={formData.email}
               onChange={handleChange}
               placeholder="email@bisnisanda.com"
@@ -131,7 +132,7 @@ export function RegisterForm() {
                 name="password"
                 type="password"
                 required
-                disabled={isPending}
+                disabled={isLoading}
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
@@ -151,7 +152,7 @@ export function RegisterForm() {
                 name="confirmPassword"
                 type="password"
                 required
-                disabled={isPending}
+                disabled={isLoading}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
@@ -171,7 +172,7 @@ export function RegisterForm() {
                 id="terms"
                 name="termsAccepted"
                 type="checkbox"
-                disabled={isPending}
+                disabled={isLoading}
                 checked={formData.termsAccepted}
                 onChange={handleChange}
                 className="peer h-4 w-4 shrink-0 rounded border-[#77786b] text-[#606c38] focus:ring-[#606c38] disabled:opacity-70 cursor-pointer"
@@ -191,10 +192,10 @@ export function RegisterForm() {
 
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full mt-6 bg-[#606c38] text-white text-sm font-semibold py-6 rounded-[10px] hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isPending ? (
+            {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Memproses...

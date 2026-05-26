@@ -1,45 +1,76 @@
-import Link from 'next/link'
-import { LayoutDashboard, ShoppingCart, Users, Layers, Settings, ReceiptText } from 'lucide-react'
+"use client";
 
-const navItems = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Transaksi POS', href: '/orders/new', icon: ShoppingCart },
-  { name: 'Riwayat Pesanan', href: '/orders', icon: ReceiptText },
-  { name: 'Pelanggan', href: '/customers', icon: Users },
-  { name: 'Layanan Laundry', href: '/services', icon: Layers },
-  { name: 'Pengaturan', href: '/settings', icon: Settings },
-]
+import Link from 'next/link';
+import { useLogout } from '@/hooks/useLogout';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export function Sidebar() {
+  const { logoutMutation } = useLogout();
+  const user = useAuthStore((state) => state.user);
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  const isLoggingOut = logoutMutation.isPending;
+
   return (
-    <aside className="w-64 bg-slate-900 text-slate-100 min-h-screen flex flex-col">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-blue-400">CleanPOS</h1>
-        <p className="text-sm text-slate-400">Sistem Manajemen Laundry</p>
+    <aside className="fixed left-0 top-0 h-full flex flex-col py-6 bg-surface-container-low dark:bg-surface-dim h-screen w-64 border-r border-outline-variant/15 z-50">
+      <div className="px-6 mb-10">
+        <span className="text-headline-md font-display font-bold text-primary dark:text-primary-fixed-dim">FreshPress POS</span>
+        <p className="text-on-surface-variant font-body-md text-xs mt-1">Staff Portal • Station #1</p>
       </div>
-      <nav className="flex-1 px-4 space-y-2">
-        {navItems.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 transition-colors text-sm font-medium"
-          >
-            <item.icon className="w-5 h-5 text-slate-400" />
-            {item.name}
-          </Link>
-        ))}
+      <nav className="flex-grow">
+        <Link className="bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="/">
+          <span className="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+          <span className="font-body-md text-body-md">Dashboard</span>
+        </Link>
+        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+          <span className="material-symbols-outlined" data-icon="local_laundry_service">local_laundry_service</span>
+          <span className="font-body-md text-body-md">Active Orders</span>
+        </Link>
+        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+          <span className="material-symbols-outlined" data-icon="category">category</span>
+          <span className="font-body-md text-body-md">Laundry Catalog</span>
+        </Link>
+        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+          <span className="material-symbols-outlined" data-icon="group">group</span>
+          <span className="font-body-md text-body-md">Customer Database</span>
+        </Link>
+        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest dark:hover:bg-on-surface-variant/10 rounded-lg transition-all duration-200 ease-in-out" href="#">
+          <span className="material-symbols-outlined" data-icon="settings">settings</span>
+          <span className="font-body-md text-body-md">Settings</span>
+        </Link>
       </nav>
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center font-bold">
-            A
+      <div className="px-2 mt-auto">
+        <Link className="text-on-surface-variant dark:text-on-surface-variant mx-2 my-1 p-3 flex items-center gap-3 hover:bg-surface-container-highest rounded-lg transition-all duration-200" href="#">
+          <span className="material-symbols-outlined" data-icon="help">help</span>
+          <span className="font-body-md text-body-md">Help Support</span>
+        </Link>
+        <div className="flex flex-col gap-3 mt-4 p-3 bg-surface-container-highest/30 rounded-xl border border-outline-variant/20">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-primary text-on-primary font-display font-bold flex items-center justify-center border border-outline-variant/30 shadow-sm">
+              {user?.name ? user.name.substring(0, 2).toUpperCase() : "U"}
+            </div>
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <span className="text-label-md font-bold text-on-surface truncate">{user?.name || "Loading..."}</span>
+              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{user?.roles?.[0] || "STAFF"}</span>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium">Admin</p>
-            <p className="text-xs text-slate-400">Owner</p>
-          </div>
+          <button 
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center justify-center gap-2 p-2 text-error font-label-md border border-error/20 rounded-lg hover:bg-error/5 transition-colors active:scale-95 duration-150 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoggingOut ? (
+              <span className="material-symbols-outlined text-sm animate-spin" data-icon="progress_activity">progress_activity</span>
+            ) : (
+              <span className="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+            )}
+            {isLoggingOut ? "Logging out..." : "Logout"}
+          </button>
         </div>
       </div>
     </aside>
-  )
+  );
 }
