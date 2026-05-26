@@ -34,7 +34,7 @@ export function Sidebar() {
           <span className="material-symbols-outlined" data-icon="dashboard">dashboard</span>
           <span className="font-body-md text-body-md">Dashboard</span>
         </Link>
-        <Link className={getLinkClassName("#")} href="#">
+        <Link className={getLinkClassName("/order")} href="/order">
           <span className="material-symbols-outlined" data-icon="local_laundry_service">local_laundry_service</span>
           <span className="font-body-md text-body-md">Active Orders</span>
         </Link>
