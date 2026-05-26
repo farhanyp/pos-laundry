@@ -1,16 +1,16 @@
 "use client";
 
-import { useCustomerStore } from "@/store/useCustomerStore";
-import { useDeleteCustomer } from "@/hooks/useCustomer";
+import { useDiscountStore } from "@/store/useDiscountStore";
+import { useDeleteDiscount } from "@/hooks/useDiscount";
 
-export function CustomerDeleteAlert() {
-  const { isDeleteAlertOpen, closeDeleteAlert, customerToDelete } = useCustomerStore();
-  const deleteMutation = useDeleteCustomer();
+export function DiscountDeleteAlert() {
+  const { isDeleteAlertOpen, closeDeleteAlert, selectedDiscount } = useDiscountStore();
+  const deleteMutation = useDeleteDiscount();
 
-  if (!isDeleteAlertOpen || !customerToDelete) return null;
+  if (!isDeleteAlertOpen || !selectedDiscount) return null;
 
   const handleDelete = () => {
-    deleteMutation.mutate(customerToDelete.id, {
+    deleteMutation.mutate(selectedDiscount.id, {
       onSuccess: () => {
         closeDeleteAlert();
       },
@@ -32,9 +32,9 @@ export function CustomerDeleteAlert() {
           <div className="w-16 h-16 bg-error-container/20 text-error rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-error/10">
             <span className="material-symbols-outlined text-[32px]" data-icon="warning">warning</span>
           </div>
-          <h2 className="font-display text-[22px] font-bold text-on-surface leading-tight">Delete Customer?</h2>
+          <h2 className="font-display text-[22px] font-bold text-on-surface leading-tight">Delete Discount?</h2>
           <p className="text-[14px] text-on-surface-variant leading-relaxed">
-            Are you sure you want to delete <span className="font-bold text-primary">{customerToDelete.name}</span>? This action is permanent and cannot be undone.
+            Are you sure you want to delete <span className="font-bold text-primary">{selectedDiscount.promo_name}</span>? This action is permanent and cannot be undone.
           </p>
         </div>
         

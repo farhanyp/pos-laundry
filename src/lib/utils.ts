@@ -41,3 +41,11 @@ export function validateWhatsAppNumber(phone: string): boolean {
   const formatted = formatWhatsAppNumber(phone);
   return /^628\d{7,13}$/.test(formatted);
 }
+
+export function formatPercentage(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "percent",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount / 100);
+}

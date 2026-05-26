@@ -42,9 +42,21 @@ export function Sidebar() {
           <span className="material-symbols-outlined" data-icon="category">category</span>
           <span className="font-body-md text-body-md">Laundry Catalog</span>
         </Link>
+        <Link className={getLinkClassName("/discounts")} href="/discounts">
+          <span className="material-symbols-outlined" data-icon="sell">sell</span>
+          <span className="font-body-md text-body-md">Discounts</span>
+        </Link>
+        <Link className={getLinkClassName("/fees")} href="/fees">
+          <span className="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+          <span className="font-body-md text-body-md">Fees</span>
+        </Link>
         <Link className={getLinkClassName("/customers")} href="/customers">
           <span className="material-symbols-outlined" data-icon="group">group</span>
           <span className="font-body-md text-body-md">Customer Database</span>
+        </Link>
+        <Link className={getLinkClassName("/taxes")} href="/taxes">
+          <span className="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+          <span className="font-body-md text-body-md">Taxes</span>
         </Link>
         <Link className={getLinkClassName("#")} href="#">
           <span className="material-symbols-outlined" data-icon="settings">settings</span>
