@@ -10,7 +10,8 @@ export function PaymentDialog() {
     paymentOrderId, paymentTotalAmount,
     paymentMethod, setPaymentMethod,
     amountPaid, setAmountPaid,
-    midtransUrl, setMidtransUrl
+    midtransUrl, setMidtransUrl,
+    setMidtransToken
   } = useOrderStore();
 
   const processPaymentMutation = useProcessOrderPayment();
@@ -29,6 +30,9 @@ export function PaymentDialog() {
 
       if (paymentMethod === 'NON_TUNAI') {
         setMidtransUrl(result?.redirectUrl || '');
+        if (result?.redirectUrl) {
+          window.open(result.redirectUrl, '_blank');
+        }
       } else {
         closePaymentDialog();
       }
@@ -129,44 +133,76 @@ export function PaymentDialog() {
                 )}
 
                 {paymentMethod === 'NON_TUNAI' && (
-                  <div className="bg-tertiary-container/10 border-2 border-tertiary/20 p-8 rounded-2xl text-center shadow-sm animate-in slide-in-from-bottom-4 fade-in flex flex-col items-center">
-                    <div className="w-16 h-16 bg-tertiary/10 rounded-full flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-[32px] text-tertiary" data-icon="account_balance">account_balance</span>
+                  <div className="w-full overflow-hidden bg-gradient-to-br from-tertiary/10 via-surface-container-lowest to-primary/5 border border-tertiary/20 p-8 rounded-3xl text-center shadow-sm animate-in slide-in-from-bottom-4 fade-in flex flex-col items-center">
+                    {/* Decorative Background Elements */}
+                    {/* <div className="absolute -top-12 -right-12 w-32 h-32 bg-tertiary/10 rounded-full blur-2xl"></div> */}
+                    {/* <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div> */}
+
+                    <div className="relative z-10 w-20 h-20 bg-gradient-to-tr from-tertiary to-primary rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-tertiary/20 rotate-3 transition-transform hover:rotate-0 duration-300">
+                      <span className="material-symbols-outlined text-[40px] text-white" data-icon="qr_code_scanner">qr_code_scanner</span>
+                      <div className="absolute -top-2 -right-2 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-secondary"></span>
+                      </div>
                     </div>
-                    <h4 className="text-title-md font-bold text-on-surface mb-2">Midtrans Payment Gateway</h4>
-                    <p className="text-on-surface-variant text-body-md max-w-sm mx-auto mb-6">
-                      A secure payment link and QRIS code will be generated upon confirmation.
+
+                    <h4 className="text-title-lg font-bold text-on-surface mb-2 tracking-tight">QRIS & E-Wallet</h4>
+                    <p className="text-on-surface-variant text-body-md px-4 mb-8 leading-relaxed">
+                      Powered by <span className="font-semibold text-tertiary">Midtrans</span>. Generate a secure QR code to accept payments via Gopay, ShopeePay, atau aplikasi QRIS lainnya.
                     </p>
 
-                    <div className="w-full max-w-xs mx-auto bg-surface-container-lowest p-4 rounded-xl border border-tertiary/10">
-                      <span className="text-label-sm font-bold text-on-surface-variant block mb-1">Total Bill to Pay</span>
-                      <p className="text-headline-sm font-bold text-tertiary">{formatCurrency(paymentTotalAmount)}</p>
+                    <div className="relative z-10 w-full min-w-[280px] max-w-[320px] mx-auto bg-surface-container-lowest/80 backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 shadow-sm group hover:border-tertiary/50 transition-colors duration-300">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-label-md font-medium text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm" data-icon="receipt_long">receipt_long</span>
+                          Total Tagihan
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-1 bg-tertiary/10 text-tertiary rounded-full uppercase tracking-wider">Aman</span>
+                      </div>
+                      <p className="text-display-sm font-black text-on-surface tracking-tight flex items-baseline justify-center gap-1 group-hover:scale-105 transition-transform duration-300 origin-center">
+                        {formatCurrency(paymentTotalAmount)}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center space-y-6">
-              <div className="w-24 h-24 bg-surface-container-high rounded-full flex items-center justify-center border-4 border-outline-variant/20 mb-2">
-                <span className="material-symbols-outlined text-[48px] text-primary" data-icon="qr_code_2">qr_code_2</span>
+            <div className="flex flex-col items-center justify-center text-center py-10 px-4 animate-in fade-in zoom-in-95 duration-500">
+              <div className="relative mb-8 group">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/30 transition-colors duration-500 animate-pulse"></div>
+                <div className="relative w-28 h-28 bg-gradient-to-tr from-primary to-tertiary rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary/30 rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
+                  <span className="material-symbols-outlined text-[56px] text-white" data-icon="qr_code_scanner">qr_code_scanner</span>
+                  <div className="absolute -top-3 -right-3 flex h-6 w-6">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-6 w-6 bg-secondary border-2 border-surface"></span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-headline-sm font-bold text-on-surface">Payment Link Generated</h3>
-                <p className="text-body-md text-on-surface-variant max-w-md mx-auto mt-2">
-                  A Midtrans payment link has been created. The customer can scan the QR code or visit this link to complete the payment.
-                </p>
+
+              <h3 className="text-display-sm font-black text-on-surface tracking-tight mb-3">Selesaikan Pembayaran</h3>
+              <p className="text-body-lg text-on-surface-variant px-6 leading-relaxed mb-10">
+                Halaman pembayaran aman dari Midtrans telah otomatis dibuka di tab baru. Silakan *scan* QRIS atau transfer melalui halaman tersebut.
+              </p>
+
+              <div className="flex flex-col gap-3 mx-auto">
+                <button
+                  onClick={handleSimulatePaymentSuccess}
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary font-bold px-6 py-4 rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300"
+                >
+                  <span className="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                  Saya Sudah Bayar
+                </button>
+                <a
+                  href={midtransUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all duration-300 group"
+                >
+                  <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="open_in_new">open_in_new</span>
+                  Buka Link Pembayaran Lagi
+                </a>
               </div>
-              <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 text-sm font-mono text-on-surface w-full max-w-md overflow-hidden text-ellipsis whitespace-nowrap">
-                <a href={midtransUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{midtransUrl}</a>
-              </div>
-              <button
-                onClick={handleSimulatePaymentSuccess}
-                className="mt-4 flex items-center gap-2 bg-primary text-on-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors shadow-md"
-              >
-                <span className="material-symbols-outlined" data-icon="check_circle">check_circle</span>
-                Simulate Successful Payment
-              </button>
             </div>
           )}
         </div>

@@ -51,7 +51,9 @@ interface OrderStore {
 
   // Mock Midtrans Data
   midtransUrl: string | null;
+  midtransToken: string | null;
   setMidtransUrl: (url: string | null) => void;
+  setMidtransToken: (token: string | null) => void;
 
   // Computed Properties (can be derived in UI, but good to have getters if needed, or compute on fly)
   resetOrder: () => void;
@@ -76,6 +78,7 @@ const initialOrderState = {
   paymentMethod: 'CASH' as PaymentMethod,
   amountPaid: 0,
   midtransUrl: null,
+  midtransToken: null,
 };
 
 export const useOrderStore = create<OrderStore>((set) => ({
@@ -114,6 +117,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
   setAmountPaid: (amountPaid) => set({ amountPaid }),
 
   setMidtransUrl: (midtransUrl) => set({ midtransUrl }),
+  setMidtransToken: (midtransToken) => set({ midtransToken }),
 
   resetOrder: () => set(initialOrderState),
 
@@ -127,7 +131,8 @@ export const useOrderStore = create<OrderStore>((set) => ({
     paymentTotalAmount: totalAmount,
     paymentMethod: 'CASH',
     amountPaid: 0,
-    midtransUrl: null
+    midtransUrl: null,
+    midtransToken: null
   }),
-  closePaymentDialog: () => set({ isPaymentOpen: false, paymentOrderId: null, paymentTotalAmount: 0, midtransUrl: null })
+  closePaymentDialog: () => set({ isPaymentOpen: false, paymentOrderId: null, paymentTotalAmount: 0, midtransUrl: null, midtransToken: null })
 }));

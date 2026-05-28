@@ -109,7 +109,7 @@ export const createOrderTransaction = async (payload: OrderPayload): Promise<str
   return orderId;
 };
 
-export const processOrderPayment = async (payload: { orderId: string, paymentMethod: 'CASH' | 'NON_TUNAI', amountPaid: number, totalAmount: number }): Promise<{ redirectUrl?: string }> => {
+export const processOrderPayment = async (payload: { orderId: string, paymentMethod: 'CASH' | 'NON_TUNAI', amountPaid: number, totalAmount: number }): Promise<{ redirectUrl?: string, token?: string }> => {
   const supabase = createClient();
   const isCash = payload.paymentMethod === 'CASH';
 
@@ -117,6 +117,7 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
   let midtransRedirectUrl = null;
 
   if (!isCash) {
+    console.log(`[Order Service] Fetching order details for Midtrans. Order ID: ${payload.orderId}`);
     // 1. Fetch order details for Midtrans
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -124,9 +125,13 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
       .eq('id', payload.orderId)
       .single();
 
-    if (orderError) throw new Error(`Failed to fetch order: ${orderError.message}`);
+    if (orderError) {
+      console.error(`[Order Service] Failed to fetch order:`, orderError.message);
+      throw new Error(`Failed to fetch order: ${orderError.message}`);
+    }
 
-    // 2. Call our Next.js API route to generate Snap Token
+    console.log(`[Order Service] Sending request to /api/midtrans for invoice: ${order.invoice_no}`);
+    // 2. Call our Next.js API route to generate Payment Link
     const res = await fetch('/api/midtrans', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -139,12 +144,18 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
     });
 
     const midtransData = await res.json();
-    if (!res.ok) throw new Error(midtransData.error || 'Failed to generate Midtrans link');
+    console.log(`[Order Service] Response from /api/midtrans:`, midtransData);
+
+    if (!res.ok) {
+      console.error(`[Order Service] Failed to generate Midtrans link:`, midtransData.error);
+      throw new Error(midtransData.error || 'Failed to generate Midtrans link');
+    }
 
     midtransToken = midtransData.token;
     midtransRedirectUrl = midtransData.redirect_url;
   }
 
+  console.log(`[Order Service] Inserting order_payments record for Order ID: ${payload.orderId}`);
   const { error: paymentError } = await supabase
     .from('order_payments')
     .insert([{
@@ -176,7 +187,10 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
 
   if (updateError) throw new Error(`Update Order Error: ${updateError.message}`);
 
-  return { redirectUrl: midtransRedirectUrl || undefined };
+  return { 
+    redirectUrl: midtransRedirectUrl || undefined,
+    token: midtransToken || undefined
+  };
 };
 
 export const updateOrderStatus = async ({
