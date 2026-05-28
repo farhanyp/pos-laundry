@@ -26,9 +26,6 @@ export function OrderDialog() {
     selectedDiscount, setDiscount,
     selectedTax, setTax,
     selectedFee, setFee,
-    paymentMethod, setPaymentMethod,
-    amountPaid, setAmountPaid,
-    midtransUrl, setMidtransUrl,
     resetOrder
   } = useOrderStore();
 
@@ -38,7 +35,6 @@ export function OrderDialog() {
   const { data: taxes } = useTaxes();
   const { data: fees } = useFees();
   const user = useAuthStore((state) => state.user);
-  
   const createOrderMutation = useCreateOrderTransaction();
 
   const [isNewCustomerMode, setIsNewCustomerMode] = useState(false);
@@ -117,26 +113,13 @@ export function OrderDialog() {
           discount_amount: discountAmount,
           tax_amount: taxAmount,
           service_fee_amount: feeAmount
-        },
-        payment: {
-          method: paymentMethod,
-          amount_paid: paymentMethod === 'CASH' ? amountPaid : totalAmount
         }
       });
       
-      if (paymentMethod === 'NON_CASH') {
-        // Show mock midtrans URL
-        setMidtransUrl(`https://app.sandbox.midtrans.com/snap/v2/vtweb/mock-${Date.now()}`);
-      } else {
-        handleClose();
-      }
+      handleClose();
     } catch (e) {
       console.error(e);
     }
-  };
-
-  const handleSimulatePaymentSuccess = () => {
-    handleClose(); // Close on success simulation
   };
 
   return (
@@ -148,12 +131,12 @@ export function OrderDialog() {
           <div>
             <h2 className="text-title-lg font-display font-bold text-on-surface">Create New Order</h2>
             <div className="flex items-center gap-2 mt-1">
-              {[1, 2, 3, 4].map(s => (
+              {[1, 2, 3].map(s => (
                 <div key={s} className="flex items-center gap-1">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-label-sm font-bold ${step === s ? 'bg-primary text-on-primary' : step > s ? 'bg-primary-container text-on-primary-container' : 'bg-surface-variant text-on-surface-variant'}`}>
                     {s}
                   </div>
-                  {s < 4 && <div className={`w-8 h-1 rounded-full ${step > s ? 'bg-primary-container' : 'bg-surface-variant'}`} />}
+                  {s < 3 && <div className={`w-8 h-1 rounded-full ${step > s ? 'bg-primary-container' : 'bg-surface-variant'}`} />}
                 </div>
               ))}
             </div>
@@ -391,160 +374,41 @@ export function OrderDialog() {
             </div>
           )}
 
-          {/* Step 4: Payment Logic */}
-          {step === 4 && !midtransUrl && (
-            <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300">
-              <div className="text-center">
-                <h3 className="text-title-lg font-bold text-primary mb-2">Payment Configuration</h3>
-                <p className="text-body-md text-on-surface-variant">Select a payment method to complete the transaction</p>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button 
-                  onClick={() => setPaymentMethod('CASH')}
-                  className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${paymentMethod === 'CASH' ? 'border-primary bg-primary/5 text-primary shadow-sm scale-[1.02]' : 'border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:border-outline-variant/50'}`}
-                >
-                  <div className={`p-4 rounded-full transition-colors ${paymentMethod === 'CASH' ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
-                    <span className="material-symbols-outlined text-4xl" data-icon="payments">payments</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-title-md block mb-1">CASH</span>
-                    <span className="text-label-sm opacity-80 font-normal">Bayar Tunai</span>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => setPaymentMethod('NON_CASH')}
-                  className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${paymentMethod === 'NON_CASH' ? 'border-primary bg-primary/5 text-primary shadow-sm scale-[1.02]' : 'border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:border-outline-variant/50'}`}
-                >
-                  <div className={`p-4 rounded-full transition-colors ${paymentMethod === 'NON_CASH' ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
-                    <span className="material-symbols-outlined text-4xl" data-icon="qr_code_scanner">qr_code_scanner</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-title-md block mb-1">NON-CASH</span>
-                    <span className="text-label-sm opacity-80 font-normal">QRIS / Transfer</span>
-                  </div>
-                </button>
-              </div>
-
-              {/* Dynamic Payment Details Section */}
-              <div className="mt-8 transition-all duration-300">
-                {paymentMethod === 'CASH' && (
-                  <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 fade-in">
-                    <div className="flex justify-between items-end border-b border-outline-variant/20 pb-4">
-                      <div>
-                        <span className="text-on-surface-variant text-label-md block mb-1">Total Bill</span>
-                        <span className="text-title-lg font-bold text-primary">{formatCurrency(totalAmount)}</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-label-md font-bold text-on-surface mb-2 block">Cash Received</label>
-                      <div className="relative flex items-center">
-                        <span className="absolute left-4 font-bold text-on-surface-variant text-lg">Rp</span>
-                        <input 
-                          type="text"
-                          inputMode="numeric"
-                          value={amountPaid ? amountPaid.toLocaleString('id-ID') : ""}
-                          onChange={(e) => {
-                            const rawValue = e.target.value.replace(/\D/g, "");
-                            setAmountPaid(Number(rawValue));
-                          }}
-                          className="w-full p-4 pl-12 rounded-xl bg-surface-container-lowest border-2 border-outline-variant/30 text-on-surface text-xl font-bold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 flex justify-between items-center mt-2">
-                      <span className="text-on-surface-variant font-bold text-label-md">Change Return:</span>
-                      <span className={`text-title-md font-bold ${amountPaid >= totalAmount ? 'text-secondary' : 'text-error'}`}>
-                        {formatCurrency(Math.max(0, amountPaid - totalAmount))}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {paymentMethod === 'NON_CASH' && (
-                  <div className="bg-tertiary-container/10 border-2 border-tertiary/20 p-8 rounded-2xl text-center shadow-sm animate-in slide-in-from-bottom-4 fade-in flex flex-col items-center">
-                    <div className="w-16 h-16 bg-tertiary/10 rounded-full flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-[32px] text-tertiary" data-icon="account_balance">account_balance</span>
-                    </div>
-                    <h4 className="text-title-md font-bold text-on-surface mb-2">Midtrans Payment Gateway</h4>
-                    <p className="text-on-surface-variant text-body-md max-w-sm mx-auto mb-6">
-                      A secure payment link and QRIS code will be generated upon confirmation.
-                    </p>
-                    
-                    <div className="w-full max-w-xs mx-auto bg-surface-container-lowest p-4 rounded-xl border border-tertiary/10">
-                      <span className="text-label-sm font-bold text-on-surface-variant block mb-1">Total Bill to Pay</span>
-                      <p className="text-headline-sm font-bold text-tertiary">{formatCurrency(totalAmount)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Dummy Midtrans Payment Screen */}
-          {step === 4 && midtransUrl && (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-6">
-              <div className="w-24 h-24 bg-surface-container-high rounded-full flex items-center justify-center border-4 border-outline-variant/20 mb-2">
-                <span className="material-symbols-outlined text-[48px] text-primary" data-icon="qr_code_2">qr_code_2</span>
-              </div>
-              <div>
-                <h3 className="text-headline-sm font-bold text-on-surface">Payment Link Generated</h3>
-                <p className="text-body-md text-on-surface-variant max-w-md mx-auto mt-2">
-                  A dummy Midtrans Snap token and URL has been created. In a real environment, the customer would scan the QR code or visit this link.
-                </p>
-              </div>
-              <div className="bg-surface-container p-3 rounded-lg border border-outline-variant/30 text-sm font-mono text-on-surface w-full max-w-md overflow-hidden text-ellipsis whitespace-nowrap">
-                {midtransUrl}
-              </div>
-              <button 
-                onClick={handleSimulatePaymentSuccess}
-                className="mt-4 flex items-center gap-2 bg-primary text-on-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors shadow-md"
-              >
-                <span className="material-symbols-outlined" data-icon="check_circle">check_circle</span>
-                Simulate Successful Payment
-              </button>
-            </div>
-          )}
+          {/* Dialog Footer handled separately */}
 
         </div>
 
         {/* Footer actions */}
-        {!midtransUrl && (
-          <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-between items-center">
-            {step > 1 ? (
-              <button onClick={prevStep} className="px-6 py-2 rounded-lg font-label-md border border-outline-variant/30 text-on-surface hover:bg-surface-container-high transition-colors">
-                Back
-              </button>
-            ) : <div />}
-            
-            {step < 4 ? (
-              <button 
-                onClick={nextStep} 
-                disabled={(step === 1 && !canProceedToStep2) || (step === 2 && !canProceedToStep3)}
-                className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next Step
-              </button>
-            ) : (
-              <button 
-                onClick={handleCreateOrder}
-                disabled={paymentMethod === 'CASH' && amountPaid < totalAmount}
-                className="px-8 py-2 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {createOrderMutation.isPending ? (
-                  <span className="material-symbols-outlined animate-spin text-sm" data-icon="progress_activity">progress_activity</span>
-                ) : (
-                  <span className="material-symbols-outlined text-sm" data-icon="task_alt">task_alt</span>
-                )}
-                {paymentMethod === 'CASH' ? 'Process Order & Print Receipt' : 'Generate Payment Link'}
-              </button>
-            )}
-          </div>
-        )}
+        <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-between items-center">
+          {step > 1 ? (
+            <button onClick={prevStep} className="px-6 py-2 rounded-lg font-label-md border border-outline-variant/30 text-on-surface hover:bg-surface-container-high transition-colors">
+              Back
+            </button>
+          ) : <div />}
+          
+          {step < 3 && (
+            <button 
+              onClick={nextStep} 
+              disabled={(step === 1 && !canProceedToStep2) || (step === 2 && !canProceedToStep3)}
+              className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next Step
+            </button>
+          )}
+
+          {step === 3 && (
+            <button 
+              onClick={handleCreateOrder}
+              disabled={createOrderMutation.isPending}
+              className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {createOrderMutation.isPending && (
+                <span className="material-symbols-outlined animate-spin text-sm" data-icon="progress_activity">progress_activity</span>
+              )}
+              Create Order
+            </button>
+          )}
+        </div>
 
       </div>
     </div>

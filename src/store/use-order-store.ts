@@ -5,7 +5,7 @@ import { Discount } from '@/types/discount';
 import { Tax } from '@/types/tax';
 import { Fee } from '@/types/fee';
 
-export type PaymentMethod = 'CASH' | 'NON_CASH';
+export type PaymentMethod = 'CASH' | 'NON_TUNAI';
 
 export interface OrderItemSelection {
   service: Service;
@@ -55,6 +55,13 @@ interface OrderStore {
 
   // Computed Properties (can be derived in UI, but good to have getters if needed, or compute on fly)
   resetOrder: () => void;
+
+  // Payment Dialog State
+  isPaymentOpen: boolean;
+  paymentOrderId: string | null;
+  paymentTotalAmount: number;
+  openPaymentDialog: (orderId: string, totalAmount: number) => void;
+  closePaymentDialog: () => void;
 }
 
 const initialOrderState = {
@@ -109,4 +116,18 @@ export const useOrderStore = create<OrderStore>((set) => ({
   setMidtransUrl: (midtransUrl) => set({ midtransUrl }),
 
   resetOrder: () => set(initialOrderState),
+
+  // Payment Dialog State
+  isPaymentOpen: false,
+  paymentOrderId: null,
+  paymentTotalAmount: 0,
+  openPaymentDialog: (orderId: string, totalAmount: number) => set({
+    isPaymentOpen: true,
+    paymentOrderId: orderId,
+    paymentTotalAmount: totalAmount,
+    paymentMethod: 'CASH',
+    amountPaid: 0,
+    midtransUrl: null
+  }),
+  closePaymentDialog: () => set({ isPaymentOpen: false, paymentOrderId: null, paymentTotalAmount: 0, midtransUrl: null })
 }));

@@ -12,6 +12,7 @@ export enum LaundryStatus {
 }
 
 export enum PaymentStatus {
+  INITATE = "INITATE",
   UNPAID = "UNPAID",
   DP = "DP",
   PAID = "PAID"

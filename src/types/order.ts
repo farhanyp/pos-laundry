@@ -8,10 +8,10 @@ export interface Order {
   customer_id: string;
   user_id: string;
   customer_token: string;
-  
+
   laundry_status: LaundryStatus;
   payment_status: PaymentStatus;
-  
+
   discount_id?: string;
   tax_id?: string;
   service_fee_id?: string;
@@ -79,8 +79,8 @@ export interface OrderPayload {
     tax_amount: number;
     service_fee_amount: number;
   };
-  payment: {
-    method: 'CASH' | 'NON_CASH';
+  payment?: {
+    method: 'CASH' | 'NON_TUNAI';
     amount_paid: number;
   };
 }

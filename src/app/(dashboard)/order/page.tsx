@@ -1,13 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import { useOrders } from "@/hooks/use-orders";
 import { useOrderStore } from "@/store/use-order-store";
 import { OrderTable } from "@/components/order/order-table";
 import { OrderDialog } from "@/components/order/order-dialog";
+import { PaymentDialog } from "@/components/order/payment-dialog";
+import { LaundryStatus, PaymentStatus } from "@/types/enums";
 
 export default function OrderPage() {
   const { data: orders, isLoading, error } = useOrders();
   const { setIsOpen } = useOrderStore();
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterLaundryStatus, setFilterLaundryStatus] = useState<LaundryStatus | 'ALL'>('ALL');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState<PaymentStatus | 'ALL'>('ALL');
+
+  const filteredOrders = orders?.filter(order => {
+    const matchSearch = order.invoice_no.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        (order.customers?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchLaundry = filterLaundryStatus === 'ALL' || order.laundry_status === filterLaundryStatus;
+    const matchPayment = filterPaymentStatus === 'ALL' || order.payment_status === filterPaymentStatus;
+    return matchSearch && matchLaundry && matchPayment;
+  });
 
   if (error) {
     return (
@@ -48,21 +63,50 @@ export default function OrderPage() {
               <h3 className="font-headline-md text-primary">Order List</h3>
               <p className="text-on-surface-variant text-label-sm">Manage all active and past transactions</p>
             </div>
-            <div className="flex gap-2 bg-surface-container-highest rounded-lg p-1">
-              <span className="material-symbols-outlined text-on-surface-variant p-1" data-icon="search">search</span>
-              <input 
-                type="text" 
-                placeholder="Search orders..." 
-                className="bg-transparent border-none outline-none text-body-sm text-on-surface w-48"
-              />
+            <div className="flex gap-2">
+              <select 
+                value={filterLaundryStatus} 
+                onChange={(e) => setFilterLaundryStatus(e.target.value as LaundryStatus | 'ALL')}
+                className="bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+              >
+                <option value="ALL">All Laundry Status</option>
+                <option value="WAITING_PAYMENT">Waiting Payment</option>
+                <option value="PROCESS">Process</option>
+                <option value="WAITING_FOR_PICKUP">Waiting for Pickup</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+
+              <select 
+                value={filterPaymentStatus} 
+                onChange={(e) => setFilterPaymentStatus(e.target.value as PaymentStatus | 'ALL')}
+                className="bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+              >
+                <option value="ALL">All Payment Status</option>
+                <option value="INITATE">Initate</option>
+                <option value="UNPAID">Unpaid</option>
+                <option value="DP">DP</option>
+                <option value="PAID">Paid</option>
+              </select>
+
+              <div className="flex gap-2 bg-surface-container-highest rounded-lg p-1 border border-outline-variant/20 focus-within:border-primary items-center">
+                <span className="material-symbols-outlined text-on-surface-variant p-1" data-icon="search">search</span>
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search orders..." 
+                  className="bg-transparent border-none outline-none text-body-sm text-on-surface w-48"
+                />
+              </div>
             </div>
           </div>
           
-          <OrderTable orders={orders || []} isLoading={isLoading} />
+          <OrderTable orders={filteredOrders || []} isLoading={isLoading} />
         </div>
       </div>
 
       <OrderDialog />
+      <PaymentDialog />
     </>
   );
 }

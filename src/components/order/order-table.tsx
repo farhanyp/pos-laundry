@@ -2,7 +2,10 @@
 
 import React, { useState } from "react";
 import { OrderWithDetails } from "@/types/order";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { useOrderStore } from "@/store/use-order-store";
+import { useUpdateOrderStatus } from "@/hooks/use-orders";
+import { LaundryStatus } from "@/types/enums";
 
 interface OrderTableProps {
   orders: OrderWithDetails[];
@@ -11,6 +14,8 @@ interface OrderTableProps {
 
 export function OrderTable({ orders, isLoading }: OrderTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { openPaymentDialog } = useOrderStore();
+  const updateOrderStatusMutation = useUpdateOrderStatus();
 
   if (isLoading) {
     return (
@@ -91,7 +96,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                     <div className="flex flex-col">
                       <span className="text-body-md font-bold text-primary">{order.invoice_no}</span>
                       <span className="text-body-sm text-on-surface-variant">
-                        {new Date(order.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {formatDateTime(order.created_at)}
                       </span>
                     </div>
                   </td>
@@ -116,12 +121,55 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                   </td>
                   <td className="p-4">
                     <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
-                        <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
-                      </button>
-                      <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
-                        <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
-                      </button>
+                      {order.payment_status === 'UNPAID' && order.laundry_status === 'WAITING_PAYMENT' ? (
+                        <button 
+                          onClick={() => openPaymentDialog(order.id, order.total_amount)}
+                          className="px-3 py-1 bg-primary text-on-primary rounded-lg text-label-sm font-bold hover:bg-primary/90 transition-colors"
+                        >
+                          CONTINUE TO PAYMENT
+                        </button>
+                      ) : order.payment_status === 'PAID' && order.laundry_status === 'PROCESS' ? (
+                        <>
+                          <button 
+                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.WAITING_FOR_PICKUP })}
+                            disabled={updateOrderStatusMutation.isPending}
+                            className="px-3 py-1 bg-secondary text-on-secondary rounded-lg text-label-sm font-bold hover:bg-secondary/90 transition-colors disabled:opacity-50"
+                          >
+                            READY TO PICKUP
+                          </button>
+                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
+                          </button>
+                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+                          </button>
+                        </>
+                      ) : order.payment_status === 'PAID' && order.laundry_status === 'WAITING_FOR_PICKUP' ? (
+                        <>
+                          <button 
+                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.COMPLETED })}
+                            disabled={updateOrderStatusMutation.isPending}
+                            className="px-3 py-1 bg-tertiary text-on-tertiary rounded-lg text-label-sm font-bold hover:bg-tertiary/90 transition-colors disabled:opacity-50"
+                          >
+                            COMPLETED
+                          </button>
+                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
+                          </button>
+                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
+                          </button>
+                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
+                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -170,7 +218,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                                   {order.order_payments?.map(payment => (
                                     <tr key={payment.id} className="bg-surface-container-lowest">
                                       <td className="px-3 py-2 text-on-surface">
-                                        {new Date(payment.created_at).toLocaleDateString('id-ID')}
+                                        {formatDateTime(payment.created_at)}
                                       </td>
                                       <td className="px-3 py-2 text-on-surface">{payment.payment_type}</td>
                                       <td className="px-3 py-2 text-on-surface text-right">{formatCurrency(payment.amount)}</td>
