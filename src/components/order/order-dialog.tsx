@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useOrderStore } from "@/store/use-order-store";
-import { useCustomers } from "@/hooks/useCustomer";
+import { useCustomers, useCreateCustomer } from "@/hooks/useCustomer";
 import { useServices } from "@/hooks/useService";
 import { useDiscounts } from "@/hooks/useDiscount";
 import { useTaxes } from "@/hooks/useTax";
@@ -30,6 +30,7 @@ export function OrderDialog() {
   } = useOrderStore();
 
   const { data: customers } = useCustomers();
+  const createCustomerMutation = useCreateCustomer();
   const { data: services } = useServices();
   const { data: discounts } = useDiscounts();
   const { data: taxes } = useTaxes();
@@ -86,13 +87,20 @@ export function OrderDialog() {
   const canProceedToStep2 = selectedCustomer !== null || (newCustomerData !== null && newCustomerData.name && newCustomerData.whatsapp_no);
   const canProceedToStep3 = items.length > 0;
 
-  const handleSubmitCustomerForm = (e: React.FormEvent) => {
+  const handleSubmitCustomerForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNewCustomerData({
-      ...customerForm,
-      whatsapp_no: formatWhatsAppNumber(customerForm.whatsapp_no)
-    });
-    setCustomer(null);
+    try {
+      const newCustomer = await createCustomerMutation.mutateAsync({
+        name: customerForm.name,
+        whatsapp_no: formatWhatsAppNumber(customerForm.whatsapp_no),
+        address: customerForm.address
+      });
+      setCustomer(newCustomer);
+      setIsNewCustomerMode(false);
+      setCustomerForm({ name: "", whatsapp_no: "", address: "" });
+    } catch (e) {
+      console.error("Failed to create customer", e);
+    }
   };
 
   const handleCreateOrder = async () => {
@@ -210,7 +218,14 @@ export function OrderDialog() {
                       placeholder="Full delivery address"
                     />
                   </div>
-                  <button type="submit" className="px-4 py-2 bg-primary-container text-on-primary-container rounded-lg font-label-md hover:bg-primary/20 transition-colors w-full">
+                  <button 
+                    type="submit" 
+                    disabled={createCustomerMutation.isPending}
+                    className="px-4 py-2 bg-primary-container text-on-primary-container rounded-lg font-label-md hover:bg-primary/20 transition-colors w-full flex items-center justify-center gap-2"
+                  >
+                    {createCustomerMutation.isPending && (
+                      <span className="material-symbols-outlined animate-spin text-sm" data-icon="progress_activity">progress_activity</span>
+                    )}
                     Save New Customer
                   </button>
                 </form>

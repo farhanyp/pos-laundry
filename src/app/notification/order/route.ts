@@ -47,13 +47,34 @@ export async function POST(req: Request) {
       // paymentStatus = PaymentStatus.UNPAID;
     }
 
-    if (paymentStatus === PaymentStatus.PAID && laundryStatus === LaundryStatus.PROCESS) {
-      // Ekstrak invoice_no dari order_id midtrans
-      // midtrans order_id formatnya: INV-YYYYMMDD-XXXX-TIMESTAMP
-      const invoiceNo = order_id.split('-').slice(0, 3).join('-');
+    // Ekstrak invoice_no dari order_id midtrans
+    // midtrans order_id formatnya: INV-YYYYMMDD-XXXX-TIMESTAMP
+    const invoiceNo = order_id.split('-').slice(0, 3).join('-');
 
-      // Update tabel orders
-      const { data, error } = await supabase
+    // Dapatkan internal order_id terlebih dahulu
+    const { data: orderData, error: fetchError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('invoice_no', invoiceNo)
+      .single();
+
+    if (fetchError || !orderData) {
+      console.error('Order not found for webhook:', fetchError);
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Selalu update midtrans_status di order_payments (apapun statusnya: pending, settlement, expire, dll)
+    await supabase
+      .from('order_payments')
+      .update({
+        midtrans_status: transaction_status
+      })
+      .eq('order_id', orderData.id)
+      .eq('payment_type', 'NON_TUNAI');
+
+    // Jika pembayarannya lunas (berhasil), barulah update tabel orders utama
+    if (paymentStatus === PaymentStatus.PAID && laundryStatus === LaundryStatus.PROCESS) {
+      const { error } = await supabase
         .from('orders')
         .update({
           payment_status: paymentStatus,
@@ -61,24 +82,11 @@ export async function POST(req: Request) {
           paid_amount: parseFloat(gross_amount),
           remaining_amount: 0
         })
-        .eq('invoice_no', invoiceNo)
-        .select('id')
-        .single();
+        .eq('id', orderData.id);
 
       if (error) {
         console.error('Supabase update error:', error);
         return NextResponse.json({ error: 'Failed to update database' }, { status: 500 });
-      }
-
-      if (data?.id) {
-        // Update tabel order_payments juga agar midtrans_status berubah
-        await supabase
-          .from('order_payments')
-          .update({
-            midtrans_status: transaction_status
-          })
-          .eq('order_id', data.id)
-          .is('payment_type', 'NON_TUNAI');
       }
     }
 

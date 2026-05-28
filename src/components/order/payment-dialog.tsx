@@ -12,7 +12,9 @@ export function PaymentDialog() {
     paymentMethod, setPaymentMethod,
     amountPaid, setAmountPaid,
     midtransUrl, setMidtransUrl,
-    setMidtransToken
+    setMidtransToken,
+    selectedCustomer,
+    newCustomerData
   } = useOrderStore();
 
   const processPaymentMutation = useProcessOrderPayment();
@@ -32,9 +34,9 @@ export function PaymentDialog() {
 
       if (paymentMethod === 'NON_TUNAI') {
         setMidtransUrl(result?.redirectUrl || '');
-        if (result?.redirectUrl) {
-          window.open(result.redirectUrl, '_blank');
-        }
+        // if (result?.redirectUrl) {
+        //   window.open(result.redirectUrl, '_blank');
+        // }
       } else {
         closePaymentDialog();
       }
@@ -45,6 +47,29 @@ export function PaymentDialog() {
 
   const handleSimulatePaymentSuccess = () => {
     closePaymentDialog();
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!midtransUrl) return;
+
+    let phone = selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no;
+
+    if (phone) {
+      phone = phone.replace(/\D/g, '');
+      if (phone.startsWith('0')) {
+        phone = '62' + phone.substring(1);
+      }
+    }
+
+    const customerName = selectedCustomer?.name || newCustomerData?.name || "Pelanggan";
+    const customerPhone = selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
+
+    const message = encodeURIComponent(`Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nTerima kasih!`);
+    const waUrl = phone
+      ? `https://api.whatsapp.com/send?phone=${phone}&text=${message}`
+      : `https://api.whatsapp.com/send?text=${message}`;
+
+    window.open(waUrl, '_blank');
   };
 
   const handleCopyLink = async () => {
@@ -205,6 +230,13 @@ export function PaymentDialog() {
                 >
                   <span className="material-symbols-outlined" data-icon="check_circle">check_circle</span>
                   Saya Sudah Bayar
+                </button>
+                <button
+                  onClick={handleSendWhatsApp}
+                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold px-6 py-4 rounded-full shadow-lg shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1 transition-all duration-300 group"
+                >
+                  <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="chat">chat</span>
+                  Kirim via WhatsApp
                 </button>
                 <a
                   href={midtransUrl}
