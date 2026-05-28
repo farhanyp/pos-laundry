@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useOrderStore } from "@/store/use-order-store";
 import { useProcessOrderPayment } from "@/hooks/use-orders";
 import { formatCurrency } from "@/lib/utils";
@@ -15,6 +16,7 @@ export function PaymentDialog() {
   } = useOrderStore();
 
   const processPaymentMutation = useProcessOrderPayment();
+  const [isCopied, setIsCopied] = useState(false);
 
   if (!isPaymentOpen) return null;
 
@@ -43,6 +45,17 @@ export function PaymentDialog() {
 
   const handleSimulatePaymentSuccess = () => {
     closePaymentDialog();
+  };
+
+  const handleCopyLink = async () => {
+    if (!midtransUrl) return;
+    try {
+      await navigator.clipboard.writeText(midtransUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link", err);
+    }
   };
 
   return (
@@ -197,11 +210,20 @@ export function PaymentDialog() {
                   href={midtransUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all duration-300 group"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:shadow-tertiary/40 hover:-translate-y-1 transition-all duration-300 group"
                 >
                   <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="open_in_new">open_in_new</span>
                   Buka Link Pembayaran Lagi
                 </a>
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                >
+                  <span className="material-symbols-outlined text-sm" data-icon={isCopied ? "check" : "content_copy"}>
+                    {isCopied ? "check" : "content_copy"}
+                  </span>
+                  {isCopied ? "Tersalin!" : "Salin Link Pembayaran"}
+                </button>
               </div>
             </div>
           )}

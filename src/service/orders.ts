@@ -121,13 +121,54 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
     // 1. Fetch order details for Midtrans
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('invoice_no, customers(name, whatsapp_no)')
+      .select(`
+        invoice_no, 
+        customers(name, whatsapp_no),
+        discount_amount,
+        tax_amount,
+        service_fee_amount,
+        total_amount,
+        order_items(
+          qty,
+          price_per_unit,
+          services(name)
+        )
+      `)
       .eq('id', payload.orderId)
       .single();
 
     if (orderError) {
       console.error(`[Order Service] Failed to fetch order:`, orderError.message);
       throw new Error(`Failed to fetch order: ${orderError.message}`);
+    }
+
+    // Build item_details for Midtrans
+    let item_details: any[] = [];
+    
+    // Only send detailed items if it's a full payment to avoid Midtrans validation error (sum of items must equal gross_amount)
+    if (payload.amountPaid === order.total_amount && order.order_items) {
+      item_details = order.order_items.map((item: any, index: number) => ({
+        id: `item-${index}`,
+        price: item.price_per_unit,
+        quantity: item.qty,
+        name: (item.services?.name || 'Laundry Item').substring(0, 50)
+      }));
+
+      if (order.discount_amount > 0) {
+        item_details.push({ id: 'discount', price: -order.discount_amount, quantity: 1, name: 'Discount' });
+      }
+      if (order.tax_amount > 0) {
+        item_details.push({ id: 'tax', price: order.tax_amount, quantity: 1, name: 'Tax' });
+      }
+      if (order.service_fee_amount > 0) {
+        item_details.push({ id: 'fee', price: order.service_fee_amount, quantity: 1, name: 'Service Fee' });
+      }
+
+      // Safety check: verify sum matches exact amountPaid
+      const calculatedSum = item_details.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+      if (calculatedSum !== payload.amountPaid) {
+        item_details = []; // Reset if mismatch, fallback to generic
+      }
     }
 
     console.log(`[Order Service] Sending request to /api/midtrans for invoice: ${order.invoice_no}`);
@@ -139,7 +180,8 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
         order_id: payload.orderId,
         invoice_no: order.invoice_no,
         gross_amount: payload.amountPaid,
-        customer_details: order.customers
+        customer_details: order.customers,
+        item_details: item_details.length > 0 ? item_details : undefined
       })
     });
 
