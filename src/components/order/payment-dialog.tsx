@@ -82,7 +82,7 @@ export function PaymentDialog() {
   const handleSendWhatsApp = () => {
     if (!midtransUrl) return;
 
-    let phone = selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no;
+    let phone = activeOrder.customers?.whatsapp_no || selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no;
 
     if (phone) {
       phone = phone.replace(/\D/g, '');
@@ -91,8 +91,8 @@ export function PaymentDialog() {
       }
     }
 
-    const customerName = selectedCustomer?.name || newCustomerData?.name || "Pelanggan";
-    const customerPhone = selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
+    const customerName = activeOrder.customers?.name || selectedCustomer?.name || newCustomerData?.name || "Pelanggan";
+    const customerPhone = activeOrder.customers?.whatsapp_no || selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
 
     const trackUrl = `${window.location.origin}/track?invoice=${activeOrder.invoice_no}`;
     const message = encodeURIComponent(`Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`);
