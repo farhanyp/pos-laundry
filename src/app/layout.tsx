@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   description: "Seamless Point of Sale for Modern Care",
 };
 
+export const viewport = {
+  themeColor: "#000000",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
