@@ -303,3 +303,27 @@ export const deleteOrder = async (orderId: string): Promise<void> => {
 
   if (error) throw new Error(error.message);
 };
+
+export const getOrderByInvoice = async (invoiceNo: string): Promise<OrderWithDetails | null> => {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      customers (*),
+      order_items (
+        *,
+        services (*)
+      ),
+      order_payments (*)
+    `)
+    .eq('invoice_no', invoiceNo)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // Not found
+    throw new Error(error.message);
+  }
+  
+  return data as unknown as OrderWithDetails;
+};

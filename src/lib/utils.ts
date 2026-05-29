@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Role } from "@/types/enums"
+import { Role, LaundryStatus, PaymentStatus } from "@/types/enums"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -110,4 +110,24 @@ export const hasAccess = (roles: Role[] | undefined, path: string): boolean => {
 export const canManageData = (roles?: Role[]): boolean => {
   if (!roles) return false;
   return roles.includes(Role.SUPERADMIN) || roles.includes(Role.OWNER);
+};
+
+export const translateLaundryStatus = (status: LaundryStatus): string => {
+  switch (status) {
+    case LaundryStatus.WAITING_PAYMENT: return "Menunggu Pembayaran";
+    case LaundryStatus.PROCESS: return "Sedang Diproses";
+    case LaundryStatus.WAITING_FOR_PICKUP: return "Menunggu Diambil";
+    case LaundryStatus.COMPLETED: return "Selesai";
+    default: return status;
+  }
+};
+
+export const translatePaymentStatus = (status: PaymentStatus): string => {
+  switch (status) {
+    case PaymentStatus.INITATE: return "Dimulai";
+    case PaymentStatus.UNPAID: return "Belum Lunas";
+    case PaymentStatus.DP: return "DP (Dibayar Sebagian)";
+    case PaymentStatus.PAID: return "Lunas";
+    default: return status;
+  }
 };
