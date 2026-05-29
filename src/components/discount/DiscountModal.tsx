@@ -55,7 +55,7 @@ export function DiscountModal() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const payload = {
       ...formData,
       start_date: new Date(formData.start_date).toISOString(),
@@ -82,7 +82,7 @@ export function DiscountModal() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]:
@@ -102,11 +102,11 @@ export function DiscountModal() {
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-300" 
+    <div
+      className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-300"
       onClick={closeModal}
     >
-      <div 
+      <div
         className="bg-surface-container-lowest shadow-2xl w-full sm:max-w-[480px] h-[100dvh] flex flex-col relative animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 sm:border-l border-outline-variant/20"
         onClick={(e) => e.stopPropagation()}
       >
@@ -134,14 +134,9 @@ export function DiscountModal() {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="px-6 sm:px-8 py-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-surface-container-lowest">
-            
+
             {/* General Info */}
             <div className="space-y-5">
-              <div className="flex items-center gap-2 border-b border-outline-variant/10 pb-2">
-                <Info className="w-5 h-5 text-primary" />
-                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Info Kampanye</h3>
-              </div>
-              
               <div className="space-y-2">
                 <label htmlFor="promo_name" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
                   Nama Promo <span className="text-error">*</span>
@@ -188,7 +183,7 @@ export function DiscountModal() {
                 <CircleDollarSign className="w-5 h-5 text-primary" />
                 <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Nilai & Aturan</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="value" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
@@ -255,7 +250,7 @@ export function DiscountModal() {
                 <Calendar className="w-5 h-5 text-primary" />
                 <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Masa Berlaku</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="start_date" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
