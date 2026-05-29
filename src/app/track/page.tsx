@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Package, Clock, CheckCircle2, AlertCircle, Receipt, Loader2, ArrowLeft, WashingMachine, Shirt, Sparkles, MapPin } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +11,17 @@ import { LaundryStatus, PaymentStatus } from "@/types/enums";
 export default function TrackPage() {
   const [invoiceInput, setInvoiceInput] = useState("");
   const [searchInvoice, setSearchInvoice] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const invoiceParam = urlParams.get('invoice');
+      if (invoiceParam) {
+        setInvoiceInput(invoiceParam);
+        setSearchInvoice(invoiceParam);
+      }
+    }
+  }, []);
 
   const { data: order, isLoading, isError, error } = useQuery({
     queryKey: ["track-order", searchInvoice],

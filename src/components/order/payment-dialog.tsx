@@ -94,7 +94,8 @@ export function PaymentDialog() {
     const customerName = selectedCustomer?.name || newCustomerData?.name || "Pelanggan";
     const customerPhone = selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
 
-    const message = encodeURIComponent(`Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nTerima kasih!`);
+    const trackUrl = `${window.location.origin}/track?invoice=${activeOrder.invoice_no}`;
+    const message = encodeURIComponent(`Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`);
     const waUrl = phone
       ? `https://api.whatsapp.com/send?phone=${phone}&text=${message}`
       : `https://api.whatsapp.com/send?text=${message}`;
