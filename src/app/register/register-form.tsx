@@ -30,7 +30,7 @@ export function RegisterForm() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    
+
     if (name === "password" || name === "confirmPassword") {
       setErrors((prev) => ({ ...prev, passwordMismatch: false }));
     }
@@ -60,7 +60,7 @@ export function RegisterForm() {
       });
 
       toast.success("Registrasi berhasil! Silakan login untuk melanjutkan.");
-      
+
       setTimeout(() => {
         router.push("/login");
       }, 1500);
@@ -75,24 +75,24 @@ export function RegisterForm() {
     <div className="w-full max-w-[540px]">
       {/* Mobile Logo (Hidden on Desktop) */}
       <div className="md:hidden flex items-center justify-center gap-2 mb-10">
-        <WashingMachine className="text-[#485422] w-6 h-6" />
-        <span className="text-2xl font-bold text-[#485422]">FreshPress</span>
+        <WashingMachine className="text-primary w-8 h-8" />
+        <span className="font-display text-3xl font-bold text-primary">Mari Laundry</span>
       </div>
 
       {/* Form Card */}
-      <div className="bg-white/95 backdrop-blur-[8px] p-10 rounded-xl border border-[#77786b]/15 shadow-sm">
-        <div className="mb-10">
-          <h2 className="text-[32px] font-semibold leading-[40px] tracking-[-0.01em] text-[#1d1c0d] mb-1">
-            Registrasi Akun Staff
+      <div className="bg-surface-container-lowest p-8 md:p-10 rounded-2xl border border-outline-variant/30 shadow-md">
+        <div className="mb-10 text-center md:text-left">
+          <h2 className="font-display text-2xl md:text-[32px] font-bold leading-tight tracking-tight text-on-surface mb-2">
+            Registrasi Akun Staf
           </h2>
-          <p className="text-[#46483c] text-base">
-            Lengkapi data diri Anda untuk memulai workspace laundry.
+          <p className="text-on-surface-variant font-body-md">
+            Lengkapi data diri Anda untuk memulai sistem kasir laundry.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label className="text-sm font-semibold tracking-[0.01em] text-[#46483c] px-1">
+          <div className="space-y-1.5">
+            <label className="font-label-md font-bold text-on-surface px-1 block">
               Nama Lengkap
             </label>
             <input
@@ -103,13 +103,13 @@ export function RegisterForm() {
               value={formData.name}
               onChange={handleChange}
               placeholder="Contoh: Budi Santoso"
-              className="w-full px-6 py-[14px] bg-[#f8f4db] border border-[#77786b]/20 rounded-[10px] focus:ring-2 focus:ring-[#606c38] focus:border-[#606c38] outline-none transition-all placeholder:text-[#77786b]/60 text-[#1d1c0d] disabled:opacity-70"
+              className="w-full px-5 py-3.5 bg-surface-container border border-outline-variant/40 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface disabled:opacity-70 font-body text-base"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-semibold tracking-[0.01em] text-[#46483c] px-1">
-              Email Bisnis
+          <div className="space-y-1.5">
+            <label className="font-label-md font-bold text-on-surface px-1 block">
+              Alamat Email
             </label>
             <input
               name="email"
@@ -118,15 +118,15 @@ export function RegisterForm() {
               disabled={isLoading}
               value={formData.email}
               onChange={handleChange}
-              placeholder="email@bisnisanda.com"
-              className="w-full px-6 py-[14px] bg-[#f8f4db] border border-[#77786b]/20 rounded-[10px] focus:ring-2 focus:ring-[#606c38] focus:border-[#606c38] outline-none transition-all placeholder:text-[#77786b]/60 text-[#1d1c0d] disabled:opacity-70"
+              placeholder="email@marilaundry.com"
+              className="w-full px-5 py-3.5 bg-surface-container border border-outline-variant/40 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface disabled:opacity-70 font-body text-base"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <label className="text-sm font-semibold tracking-[0.01em] text-[#46483c] px-1">
-                Password Baru
+            <div className="space-y-1.5">
+              <label className="font-label-md font-bold text-on-surface px-1 block">
+                Kata Sandi Baru
               </label>
               <input
                 name="password"
@@ -137,16 +137,16 @@ export function RegisterForm() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full px-6 py-[14px] bg-[#f8f4db] border rounded-[10px] outline-none transition-all placeholder:text-[#77786b]/60 text-[#1d1c0d] disabled:opacity-70",
-                  errors.passwordMismatch 
-                    ? "border-[#ba1a1a] focus:ring-2 focus:ring-[#ba1a1a]" 
-                    : "border-[#77786b]/20 focus:ring-2 focus:ring-[#606c38] focus:border-[#606c38]"
+                  "w-full px-5 py-3.5 bg-surface-container border rounded-xl outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface disabled:opacity-70 font-body text-base",
+                  errors.passwordMismatch
+                    ? "border-error focus:ring-2 focus:ring-error/20"
+                    : "border-outline-variant/40 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold tracking-[0.01em] text-[#46483c] px-1">
-                Konfirmasi Password
+            <div className="space-y-1.5">
+              <label className="font-label-md font-bold text-on-surface px-1 block">
+                Konfirmasi Kata Sandi
               </label>
               <input
                 name="confirmPassword"
@@ -157,43 +157,19 @@ export function RegisterForm() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full px-6 py-[14px] bg-[#f8f4db] border rounded-[10px] outline-none transition-all placeholder:text-[#77786b]/60 text-[#1d1c0d] disabled:opacity-70",
-                  errors.passwordMismatch 
-                    ? "border-[#ba1a1a] focus:ring-2 focus:ring-[#ba1a1a]" 
-                    : "border-[#77786b]/20 focus:ring-2 focus:ring-[#606c38] focus:border-[#606c38]"
+                  "w-full px-5 py-3.5 bg-surface-container border rounded-xl outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface disabled:opacity-70 font-body text-base",
+                  errors.passwordMismatch
+                    ? "border-error focus:ring-2 focus:ring-error/20"
+                    : "border-outline-variant/40 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
               />
             </div>
           </div>
 
-          <div className="flex items-start gap-3 pt-1">
-            <div className="relative mt-1 flex items-center">
-              <input
-                id="terms"
-                name="termsAccepted"
-                type="checkbox"
-                disabled={isLoading}
-                checked={formData.termsAccepted}
-                onChange={handleChange}
-                className="peer h-4 w-4 shrink-0 rounded border-[#77786b] text-[#606c38] focus:ring-[#606c38] disabled:opacity-70 cursor-pointer"
-              />
-            </div>
-            <label
-              htmlFor="terms"
-              className="text-xs font-medium leading-[16px] text-[#46483c] cursor-pointer select-none"
-            >
-              Saya menyetujui{" "}
-              <Link href="#" className="text-[#485422] underline hover:text-[#606c38] transition-colors">
-                Syarat &amp; Ketentuan
-              </Link>{" "}
-              serta Kebijakan Privasi FreshPress.
-            </label>
-          </div>
-
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-6 bg-[#606c38] text-white text-sm font-semibold py-6 rounded-[10px] hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-6 bg-primary text-on-primary font-label-lg font-bold py-4 rounded-xl hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -202,7 +178,7 @@ export function RegisterForm() {
               </>
             ) : (
               <>
-                Selesaikan Registrasi &amp; Masuk
+                Daftar
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </>
             )}
@@ -212,33 +188,22 @@ export function RegisterForm() {
 
       {/* Footer Text */}
       <div className="mt-10 text-center">
-        <p className="text-base text-[#46483c]">
+        <p className="font-body-md text-on-surface-variant">
           Sudah memiliki akun?{" "}
           <Link
             href="/login"
-            className="text-[#485422] font-bold hover:underline underline-offset-4 transition-all"
+            className="text-primary font-bold hover:underline underline-offset-4 transition-all"
           >
-            Login di sini
+            Masuk di sini
           </Link>
         </p>
       </div>
 
       {/* Shared Component: Footer (Mobile version / below form) */}
-      <footer className="mt-16 w-full py-6 border-t border-[#77786b]/10 flex flex-col items-center gap-4 text-center md:hidden">
-        <span className="text-xs font-medium text-[#46483c] opacity-60">
-          © 2026 Launderly Systems. All rights reserved.
+      <footer className="mt-16 w-full py-6 border-t border-outline-variant/20 flex flex-col items-center gap-4 text-center md:hidden">
+        <span className="font-label-sm font-medium text-on-surface-variant">
+          © 2026 Mari Laundry Systems. Seluruh hak cipta dilindungi.
         </span>
-        <div className="flex gap-6">
-          <Link href="#" className="text-xs font-medium text-[#46483c] hover:text-[#485422] transition-colors hover:underline underline-offset-4">
-            Privacy Policy
-          </Link>
-          <Link href="#" className="text-xs font-medium text-[#46483c] hover:text-[#485422] transition-colors hover:underline underline-offset-4">
-            Terms of Service
-          </Link>
-          <Link href="#" className="text-xs font-medium text-[#46483c] hover:text-[#485422] transition-colors hover:underline underline-offset-4">
-            Support
-          </Link>
-        </div>
       </footer>
     </div>
   );

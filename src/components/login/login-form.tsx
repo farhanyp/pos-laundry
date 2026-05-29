@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { WashingMachine, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { WashingMachine, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +20,7 @@ export function LoginForm() {
 
   useEffect(() => {
     // Check if remember me was set previously
-    const savedEmail = localStorage.getItem("freshpress_remember_email");
+    const savedEmail = localStorage.getItem("marilaundry_remember_email");
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
@@ -30,7 +30,7 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Silakan isi email dan password Anda.");
+      toast.error("Silakan isi email dan kata sandi Anda.");
       return;
     }
 
@@ -41,12 +41,12 @@ export function LoginForm() {
 
       // Handle remember me
       if (rememberMe) {
-        localStorage.setItem("freshpress_remember_email", email);
+        localStorage.setItem("marilaundry_remember_email", email);
       } else {
-        localStorage.removeItem("freshpress_remember_email");
+        localStorage.removeItem("marilaundry_remember_email");
       }
 
-      toast.success("Login berhasil! Mengalihkan ke dashboard...");
+      toast.success("Login berhasil! Mengalihkan ke dasbor...");
 
       // Wait briefly for the toast to be seen before redirecting
       setTimeout(() => {
@@ -60,54 +60,54 @@ export function LoginForm() {
   };
 
   return (
-    <div className="flex flex-col justify-between p-10 md:p-16 order-2 md:order-1 h-full w-full">
-      <div className="flex flex-col items-center justify-center h-full max-w-[450px] mx-auto w-full">
+    <div className="flex flex-col justify-center p-8 md:p-16 order-2 md:order-1 h-full w-full bg-surface-container-lowest">
+      <div className="flex flex-col items-center justify-center w-full max-w-[420px] mx-auto overflow-y-auto pb-8 md:pb-0 hide-scrollbar">
         {/* Brand Identity */}
-        <div className="bg-[#606c38] text-[#dfedac] p-2 rounded-lg mb-6 shadow-sm">
-          <WashingMachine className="w-8 h-8" />
+        <div className="bg-primary/10 text-primary p-3 rounded-2xl mb-6 shadow-sm border border-primary/20">
+          <WashingMachine className="w-10 h-10" />
         </div>
 
-        <h1 className="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-[#485422] text-center mb-1">
+        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-on-surface text-center mb-2">
           Selamat Datang Kembali
         </h1>
-        <p className="font-sans text-base text-[#46483c] text-center mb-10">
-          Silakan masuk untuk mengelola operasional laundry Anda
+        <p className="font-body text-base text-on-surface-variant text-center mb-10">
+          Silakan masuk untuk mengelola operasional Mari Laundry
         </p>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="w-full space-y-6">
-          <div className="space-y-1">
-            <label className="font-sans text-sm font-semibold tracking-[0.01em] text-[#46483c] ml-1 block" htmlFor="email">
-              Email Address
+          <div className="space-y-1.5">
+            <label className="font-label-md font-bold text-on-surface ml-1 block" htmlFor="email">
+              Alamat Email
             </label>
             <div className="relative group">
-              <Mail className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#46483c] group-focus-within:text-[#485422] transition-colors" />
+              <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" />
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="staff@freshpress.com"
+                placeholder="staf@marilaundry.com"
                 disabled={isLoading}
-                className="w-full pl-11 pr-3 py-3 bg-[#f8f4db] border border-[#77786b]/15 rounded-[10px] font-sans text-base placeholder:text-[#77786b]/60 focus:outline-none focus:ring-2 focus:ring-[#606c38] focus:border-transparent transition-all disabled:opacity-70 text-[#1d1c0d]"
+                className="w-full pl-12 pr-4 py-3.5 bg-surface-container border border-outline-variant/40 rounded-xl font-body text-base placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-70 text-on-surface"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center px-1">
-              <label className="font-sans text-sm font-semibold tracking-[0.01em] text-[#46483c]" htmlFor="password">
-                Password
+              <label className="font-label-md font-bold text-on-surface" htmlFor="password">
+                Kata Sandi
               </label>
               <button
                 type="button"
-                className="font-sans text-sm font-semibold text-[#485422] hover:underline"
+                className="font-label-sm font-bold text-primary hover:text-primary/80 hover:underline transition-colors"
               >
-                Lupa Password?
+                Lupa Kata Sandi?
               </button>
             </div>
             <div className="relative group">
-              <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#46483c] group-focus-within:text-[#485422] transition-colors" />
+              <Lock className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -115,13 +115,13 @@ export function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={isLoading}
-                className="w-full pl-11 pr-11 py-3 bg-[#f8f4db] border border-[#77786b]/15 rounded-[10px] font-sans text-base placeholder:text-[#77786b]/60 focus:outline-none focus:ring-2 focus:ring-[#606c38] focus:border-transparent transition-all disabled:opacity-70 text-[#1d1c0d]"
+                className="w-full pl-12 pr-12 py-3.5 bg-surface-container border border-outline-variant/40 rounded-xl font-body text-base placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-70 text-on-surface"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#46483c] hover:text-[#485422] transition-colors disabled:opacity-70"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors disabled:opacity-70"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -129,7 +129,7 @@ export function LoginForm() {
           </div>
 
           <label className="flex items-center gap-3 cursor-pointer select-none px-1 py-1 group">
-            <div className="relative w-5 h-5 border-2 border-[#121f05] rounded-[4px] flex items-center justify-center group-hover:border-[#606c38] transition-colors bg-[#f8f4db]">
+            <div className="relative w-5 h-5 border-2 border-outline-variant rounded-[4px] flex items-center justify-center group-hover:border-primary transition-colors bg-surface-container">
               <input
                 type="checkbox"
                 checked={rememberMe}
@@ -139,24 +139,24 @@ export function LoginForm() {
               />
               <svg
                 className={cn(
-                  "w-3.5 h-3.5 text-[#606c38] transition-transform",
+                  "w-3.5 h-3.5 text-primary transition-transform",
                   rememberMe ? "scale-100" : "scale-0"
                 )}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={3}
+                strokeWidth={4}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <span className="font-sans text-sm font-semibold text-[#46483c]">Ingat stasiun ini</span>
+            <span className="font-label-md font-medium text-on-surface">Ingat sesi ini</span>
           </label>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#606c38] hover:bg-[#485422] text-[#dfedac] font-sans text-base font-semibold py-3 rounded-[10px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary/90 text-on-primary font-label-lg font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -172,19 +172,11 @@ export function LoginForm() {
           </button>
         </form>
 
-        <div className="w-full mt-16 pt-6 border-t border-[#77786b]/15 text-center">
-          <p className="font-sans text-sm text-[#46483c] mb-3">Belum punya akun?</p>
-          <Link href="/register" className="inline-block px-6 py-2 border border-[#77786b]/30 text-[#46483c] hover:border-[#606c38] hover:text-[#606c38] rounded-[10px] font-sans text-sm font-semibold transition-all">
+        <div className="w-full mt-10 pt-6 border-t border-outline-variant/20 text-center">
+          <p className="font-body-sm text-on-surface-variant mb-3">Belum punya akun?</p>
+          <Link href="/register" className="inline-block px-6 py-2.5 border-2 border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary rounded-xl font-label-md font-bold transition-all">
             Daftar Sekarang
           </Link>
-        </div>
-      </div>
-
-      {/* Operational Status Footer */}
-      <div className="mt-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#d7e9bd]/30 rounded-full">
-          <span className="w-2 h-2 bg-[#546341] rounded-full animate-pulse"></span>
-          <p className="font-sans text-xs font-medium text-[#3d4b2b]">Station #104: All systems operational</p>
         </div>
       </div>
     </div>

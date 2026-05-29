@@ -10,21 +10,21 @@ export function DecorativeSection() {
         src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Fcgoy6tVnPUcadzFk1XTsWwFWAoswWkKI_8tJHuCYqtJoTEK5FhpX0InxBeyr-JjGmZT_DhaRbR20CF6Mej4optOgUizaFKfGpSx39HnArQfNV8tARcR1JVdW8aFDRMumbYf-3GGQtmC4_tqfiZhFROh8QwSQDENk4pzgFRgB7lgejBUwczXGIXQQDBeJGd-x3mN905veAqWrgq6exZxu_3ZBTpFVN-4734ghy-_7EexiO_p55eiM3zJzmjE_hKutlFrfHJQkvYQ"
       />
       
-      <div className="absolute inset-0 bg-gradient-to-b from-[#485422]/10 to-[#485422]/60 flex flex-col justify-end p-10">
-        <div className="backdrop-blur-md bg-white/10 p-10 rounded-xl border border-white/20">
-          <h2 className="font-sans text-[40px] font-semibold leading-[48px] tracking-[-0.02em] text-white mb-2">
-            Freshly Managed.
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-primary/80 flex flex-col justify-end p-10">
+        <div className="backdrop-blur-md bg-white/10 p-10 rounded-2xl border border-white/20">
+          <h2 className="font-display text-[40px] font-bold leading-[48px] tracking-tight text-white mb-3">
+            Mari Laundry.
           </h2>
-          <p className="font-sans text-lg text-white/90">
-            Seamless Point of Sale for Modern Care. Track every cycle, manage every station, and delight every customer.
+          <p className="font-body text-lg text-white/90">
+            Sistem Kasir Pintar untuk Laundry Modern. Lacak setiap proses, kelola setiap outlet, dan layani setiap pelanggan dengan lebih baik.
           </p>
         </div>
       </div>
       
-      <div className="absolute top-16 right-16">
-        <div className="bg-[#485422]/90 backdrop-blur-sm text-white px-6 py-3 rounded-lg flex items-center gap-3 shadow-lg border border-white/10">
+      <div className="absolute top-10 right-10">
+        <div className="bg-primary/90 backdrop-blur-sm text-on-primary px-6 py-3 rounded-full flex items-center gap-3 shadow-lg border border-white/20">
           <Leaf className="w-5 h-5" />
-          <span className="font-sans text-sm font-semibold tracking-[0.01em]">100% Eco-Friendly</span>
+          <span className="font-label-md font-bold">100% Ramah Lingkungan</span>
         </div>
       </div>
     </div>
