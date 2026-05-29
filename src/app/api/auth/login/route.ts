@@ -44,16 +44,16 @@ export async function POST(request: Request) {
     const { data: userRoles, error: rolesError } = await supabase
       .from("user_roles")
       .select(`
-        role:roles(name)
+        role:roles(role_name)
       `)
       .eq("user_id", user.id);
 
-    // Default to STAFF if no role found, or extract roles
     let roles: Role[] = [Role.STAFF];
     if (!rolesError && userRoles && userRoles.length > 0) {
-      roles = userRoles
-        .map((ur: any) => ur.role?.name as Role)
+      const extracted = userRoles
+        .map((ur: any) => ur.role?.role_name as Role)
         .filter(Boolean);
+      if (extracted.length > 0) roles = extracted;
     }
 
     // Generate tokens

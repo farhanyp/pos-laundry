@@ -23,6 +23,10 @@ export const useLogout = () => {
       removeStoredRefreshToken();
       clearAuth();
       queryClient.clear();
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("auth-storage");
+        localStorage.removeItem("auth-storage");
+      }
       toast.success("Logout berhasil.");
       router.push("/login");
     },
@@ -30,6 +34,10 @@ export const useLogout = () => {
       removeStoredRefreshToken();
       clearAuth();
       queryClient.clear();
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("auth-storage");
+        localStorage.removeItem("auth-storage");
+      }
       toast.error(error.message || "Gagal melakukan logout dari server, sesi lokal dihapus.");
       router.push("/login");
     }

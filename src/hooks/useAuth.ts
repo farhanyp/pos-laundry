@@ -25,6 +25,10 @@ export const useAuth = () => {
     removeStoredRefreshToken();
     clearAuth();
     queryClient.clear();
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("auth-storage");
+      localStorage.removeItem("auth-storage");
+    }
   };
 
   const silentRefresh = async () => {

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LayoutDashboard, Shirt, LayoutGrid, Tag, Wallet, Users, Receipt, Loader2, LogOut, Menu, X } from 'lucide-react';
+import { Role } from '@/types/enums';
+import { hasAccess } from '@/lib/utils';
+import { LayoutDashboard, Shirt, LayoutGrid, Tag, Wallet, Users, Receipt, Loader2, LogOut, Menu, X, UserCog } from 'lucide-react';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -69,34 +71,54 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-grow overflow-y-auto">
-          <Link className={getLinkClassName("/")} href="/" onClick={handleLinkClick}>
-            <LayoutDashboard className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Dasbor</span>
-          </Link>
-          <Link className={getLinkClassName("/order")} href="/order" onClick={handleLinkClick}>
-            <Shirt className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Pesanan Aktif</span>
-          </Link>
-          <Link className={getLinkClassName("/services")} href="/services" onClick={handleLinkClick}>
-            <LayoutGrid className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Katalog Layanan</span>
-          </Link>
-          <Link className={getLinkClassName("/discounts")} href="/discounts" onClick={handleLinkClick}>
-            <Tag className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Diskon</span>
-          </Link>
-          <Link className={getLinkClassName("/fees")} href="/fees" onClick={handleLinkClick}>
-            <Wallet className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Biaya Tambahan</span>
-          </Link>
-          <Link className={getLinkClassName("/customers")} href="/customers" onClick={handleLinkClick}>
-            <Users className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Data Pelanggan</span>
-          </Link>
-          <Link className={getLinkClassName("/taxes")} href="/taxes" onClick={handleLinkClick}>
-            <Receipt className="w-6 h-6" />
-            <span className="font-body-md text-body-md">Pajak</span>
-          </Link>
+          {hasAccess(user?.roles, "/") && (
+            <Link className={getLinkClassName("/")} href="/" onClick={handleLinkClick}>
+              <LayoutDashboard className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Dasbor</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/order") && (
+            <Link className={getLinkClassName("/order")} href="/order" onClick={handleLinkClick}>
+              <Shirt className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Pesanan Aktif</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/services") && (
+            <Link className={getLinkClassName("/services")} href="/services" onClick={handleLinkClick}>
+              <LayoutGrid className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Katalog Layanan</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/discounts") && (
+            <Link className={getLinkClassName("/discounts")} href="/discounts" onClick={handleLinkClick}>
+              <Tag className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Diskon</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/fees") && (
+            <Link className={getLinkClassName("/fees")} href="/fees" onClick={handleLinkClick}>
+              <Wallet className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Biaya Tambahan</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/customers") && (
+            <Link className={getLinkClassName("/customers")} href="/customers" onClick={handleLinkClick}>
+              <Users className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Data Pelanggan</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/taxes") && (
+            <Link className={getLinkClassName("/taxes")} href="/taxes" onClick={handleLinkClick}>
+              <Receipt className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Pajak</span>
+            </Link>
+          )}
+          {hasAccess(user?.roles, "/users") && (
+            <Link className={getLinkClassName("/users")} href="/users" onClick={handleLinkClick}>
+              <UserCog className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Manajemen Pengguna</span>
+            </Link>
+          )}
         </nav>
 
         <div className="px-2 mt-auto pt-4">

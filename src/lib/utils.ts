@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { Role } from "@/types/enums"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -68,3 +69,42 @@ export function calculateDPAmount(totalAmount: number): number {
 export function calculateChange(amountPaid: number, expectedAmount: number): number {
   return Math.max(0, amountPaid - expectedAmount);
 }
+
+export const PERMISSIONS: Record<Role, string[]> = {
+  [Role.SUPERADMIN]: [
+    "/customers",
+    "/discounts",
+    "/fees",
+    "/order",
+    "/services",
+    "/taxes",
+    "/users",
+    "/" 
+  ],
+  [Role.OWNER]: [
+    "/customers",
+    "/discounts",
+    "/fees",
+    "/order",
+    "/services",
+    "/taxes",
+    "/users",
+    "/" 
+  ],
+  [Role.STAFF]: [
+    "/customers",
+    "/order",
+    "/services",
+    "/" 
+  ]
+};
+
+export const hasAccess = (roles: Role[] | undefined, path: string): boolean => {
+  if (!roles || roles.length === 0) return false;
+  return roles.some((role) => {
+    const allowedPaths = PERMISSIONS[role] || [];
+    return allowedPaths.some(
+      allowedPath => path === allowedPath || (allowedPath !== '/' && path.startsWith(allowedPath))
+    );
+  });
+};
