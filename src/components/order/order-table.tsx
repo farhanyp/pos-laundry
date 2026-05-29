@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { OrderWithDetails } from "@/types/order";
-import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle, ShoppingBag, Shirt, Banknote, QrCode, ChevronDown } from "lucide-react";
+import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle, ShoppingBag, Shirt, Banknote, QrCode, ChevronDown, Trash } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { useOrderStore } from "@/store/use-order-store";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useUpdateOrderStatus } from "@/hooks/useOrders";
-import { LaundryStatus } from "@/types/enums";
+import { LaundryStatus, Role } from "@/types/enums";
 
 interface OrderTableProps {
   orders: OrderWithDetails[];
@@ -15,8 +16,12 @@ interface OrderTableProps {
 
 export function OrderTable({ orders, isLoading }: OrderTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const { openPaymentDialog } = useOrderStore();
+  const { openPaymentDialog, openDeleteAlert } = useOrderStore();
   const updateOrderStatusMutation = useUpdateOrderStatus();
+  
+  const currentUser = useAuthStore(state => state.user);
+  // STAFF, OWNER, and SUPERADMIN all have delete permissions for orders as per requirements
+  const canDelete = true;
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -241,6 +246,15 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
       <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors border md:border-none border-outline-variant/20" title="Lihat Detail">
         <Eye className="w-4 h-4" />
       </button>
+      {canDelete && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); openDeleteAlert(order); }} 
+          className="p-1.5 text-error hover:bg-error/10 rounded-md transition-colors border md:border-none border-error/20" 
+          title="Hapus Pesanan"
+        >
+          <Trash className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 

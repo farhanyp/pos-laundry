@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Service } from "@/types/service";
 import { Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Clock } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, canManageData } from "@/lib/utils";
 import { useServiceStore } from "@/store/useServiceStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface ServiceTableProps {
   services: Service[];
@@ -13,6 +14,8 @@ interface ServiceTableProps {
 
 export function ServiceTable({ services, isLoading }: ServiceTableProps) {
   const { openModal, openDeleteAlert } = useServiceStore();
+  const currentUser = useAuthStore(state => state.user);
+  const canManage = canManageData(currentUser?.roles);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -75,20 +78,24 @@ export function ServiceTable({ services, isLoading }: ServiceTableProps) {
                 </span>
                 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openModal(service)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(service)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Hapus
-                  </button>
+                  {canManage && (
+                    <>
+                      <button
+                        onClick={() => openModal(service)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openDeleteAlert(service)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -144,22 +151,24 @@ export function ServiceTable({ services, isLoading }: ServiceTableProps) {
                 )}
               </td>
               <td className="px-4 py-3 font-body-md text-on-surface text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => openModal(service)}
-                    className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
-                    title="Edit Service"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(service)}
-                    className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                    title="Delete Service"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {canManage && (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => openModal(service)}
+                      className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
+                      title="Edit Service"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteAlert(service)}
+                      className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
+                      title="Delete Service"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

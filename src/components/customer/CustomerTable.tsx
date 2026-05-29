@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Customer } from "@/types/customer";
 import { Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Phone, MapPin } from "lucide-react";
-import { formatWhatsAppNumber } from "@/lib/utils";
+import { formatWhatsAppNumber, canManageData } from "@/lib/utils";
 import { useCustomerStore } from "@/store/useCustomerStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -13,6 +14,8 @@ interface CustomerTableProps {
 
 export function CustomerTable({ customers, isLoading }: CustomerTableProps) {
   const { openModal, openDeleteAlert } = useCustomerStore();
+  const currentUser = useAuthStore(state => state.user);
+  const canManage = canManageData(currentUser?.roles);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -59,20 +62,24 @@ export function CustomerTable({ customers, isLoading }: CustomerTableProps) {
 
               <div className="flex items-center justify-end pt-3 border-t border-outline-variant/10 mt-1">
                 <div className="flex items-center gap-2 w-full">
-                  <button
-                    onClick={() => openModal(customer)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(customer)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Hapus
-                  </button>
+                  {canManage && (
+                    <>
+                      <button
+                        onClick={() => openModal(customer)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openDeleteAlert(customer)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -104,22 +111,24 @@ export function CustomerTable({ customers, isLoading }: CustomerTableProps) {
                 {customer.address || "-"}
               </td>
               <td className="px-4 py-3 font-body-md text-on-surface text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => openModal(customer)}
-                    className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
-                    title="Edit Customer"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(customer)}
-                    className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                    title="Delete Customer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {canManage && (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => openModal(customer)}
+                      className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
+                      title="Edit Customer"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteAlert(customer)}
+                      className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
+                      title="Delete Customer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

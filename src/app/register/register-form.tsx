@@ -17,7 +17,6 @@ export function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    termsAccepted: false,
   });
 
   const [errors, setErrors] = useState<{
@@ -42,11 +41,6 @@ export function RegisterForm() {
     if (formData.password !== formData.confirmPassword) {
       setErrors({ passwordMismatch: true });
       toast.error("Password dan Konfirmasi Password tidak cocok.");
-      return;
-    }
-
-    if (!formData.termsAccepted) {
-      toast.error("Anda harus menyetujui Syarat & Ketentuan.");
       return;
     }
 

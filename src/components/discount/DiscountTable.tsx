@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Discount } from "@/types/discount";
 import { Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, canManageData } from "@/lib/utils";
 import { useDiscountStore } from "@/store/useDiscountStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface DiscountTableProps {
   discounts: Discount[];
@@ -13,6 +14,8 @@ interface DiscountTableProps {
 
 export function DiscountTable({ discounts, isLoading }: DiscountTableProps) {
   const { openModal, openDeleteAlert } = useDiscountStore();
+  const currentUser = useAuthStore(state => state.user);
+  const canManage = canManageData(currentUser?.roles);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -87,20 +90,24 @@ export function DiscountTable({ discounts, isLoading }: DiscountTableProps) {
                 </span>
                 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openModal(discount)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(discount)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Hapus
-                  </button>
+                  {canManage && (
+                    <>
+                      <button
+                        onClick={() => openModal(discount)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openDeleteAlert(discount)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -161,22 +168,24 @@ export function DiscountTable({ discounts, isLoading }: DiscountTableProps) {
                 )}
               </td>
               <td className="px-4 py-3 font-body-md text-on-surface text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => openModal(discount)}
-                    className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
-                    title="Edit Discount"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(discount)}
-                    className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                    title="Delete Discount"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {canManage && (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => openModal(discount)}
+                      className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded transition-colors"
+                      title="Edit Discount"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteAlert(discount)}
+                      className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
+                      title="Delete Discount"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

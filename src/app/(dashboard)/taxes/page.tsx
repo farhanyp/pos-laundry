@@ -7,10 +7,13 @@ import { TaxModal } from "@/components/tax/TaxModal";
 import { TaxDeleteAlert } from "@/components/tax/TaxDeleteAlert";
 import { useState } from "react";
 import { Plus, Search, AlertTriangle } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { canManageData } from "@/lib/utils";
 
 export default function TaxesPage() {
   const { data: taxes, isLoading, error } = useTaxes();
   const { openModal } = useTaxStore();
+  const currentUser = useAuthStore(state => state.user);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTaxes = taxes?.filter(tax => 
@@ -35,13 +38,15 @@ export default function TaxesPage() {
         {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="font-display text-title-lg md:text-headline-md font-bold text-primary">Manajemen Pajak</h1>
-          <button 
-            onClick={() => openModal()}
-            className="flex items-center justify-center gap-2 bg-primary text-on-primary font-label-md p-2 md:px-4 md:py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150 shadow-sm"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden md:inline">Tambah Pajak</span>
-          </button>
+          {canManageData(currentUser?.roles) && (
+            <button 
+              onClick={() => openModal()}
+              className="flex items-center justify-center gap-2 bg-primary text-on-primary font-label-md p-2 md:px-4 md:py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150 shadow-sm"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="hidden md:inline">Tambah Pajak</span>
+            </button>
+          )}
         </div>
 
         <div className="bg-surface-container-low rounded-lg border border-outline-variant/15 p-4 md:p-md flex flex-col">

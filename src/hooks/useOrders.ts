@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOrders, createOrderTransaction, updateOrderStatus, processOrderPayment } from '@/service/orders';
+import { getOrders, createOrderTransaction, updateOrderStatus, processOrderPayment, deleteOrder } from '@/service/orders';
 import { toast } from 'sonner';
 
 export const useOrders = () => {
@@ -90,3 +90,17 @@ export function useSettlePaymentMutation() {
     },
   });
 }
+
+export const useDeleteOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Pesanan berhasil dihapus');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Gagal menghapus pesanan');
+    },
+  });
+};

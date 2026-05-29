@@ -293,3 +293,13 @@ export const updateOrderStatus = async ({
 
   if (error) throw new Error(error.message);
 };
+
+export const deleteOrder = async (orderId: string): Promise<void> => {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('orders')
+    .delete()
+    .eq('id', orderId);
+
+  if (error) throw new Error(error.message);
+};

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Tax } from "@/types/tax";
 import { Receipt, Edit, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatPercentage } from "@/lib/utils";
+import { formatPercentage, canManageData } from "@/lib/utils";
 import { useTaxStore } from "@/store/useTaxStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface TaxTableProps {
   taxes: Tax[];
@@ -13,6 +14,8 @@ interface TaxTableProps {
 
 export function TaxTable({ taxes, isLoading }: TaxTableProps) {
   const { openModal, openDeleteAlert } = useTaxStore();
+  const currentUser = useAuthStore(state => state.user);
+  const canManage = canManageData(currentUser?.roles);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -70,20 +73,24 @@ export function TaxTable({ taxes, isLoading }: TaxTableProps) {
               
               <div className="flex items-center justify-end pt-3 border-t border-outline-variant/10 mt-1">
                 <div className="flex items-center gap-2 w-full">
-                  <button
-                    onClick={() => openModal(tax)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => openDeleteAlert(tax)}
-                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Hapus
-                  </button>
+                  {canManage && (
+                    <>
+                      <button
+                        onClick={() => openModal(tax)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openDeleteAlert(tax)}
+                        className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -127,20 +134,22 @@ export function TaxTable({ taxes, isLoading }: TaxTableProps) {
                 )}
               </td>
               <td className="p-4 text-right">
-                <div className="flex justify-end gap-2">
-                  <button 
-                    onClick={() => openModal(tax)}
-                    className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded-lg transition-colors"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={() => openDeleteAlert(tax)}
-                    className="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
+                {canManage && (
+                  <div className="flex justify-end gap-2">
+                    <button 
+                      onClick={() => openModal(tax)}
+                      className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary-container/20 rounded-lg transition-colors"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => openDeleteAlert(tax)}
+                      className="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

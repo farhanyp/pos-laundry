@@ -66,6 +66,12 @@ interface OrderStore {
   setPaymentMode: (mode: 'FULL' | 'DP') => void;
   openPaymentDialog: (order: OrderWithDetails) => void;
   closePaymentDialog: () => void;
+
+  // Delete Alert State
+  isDeleteAlertOpen: boolean;
+  selectedOrderToDelete: OrderWithDetails | null;
+  openDeleteAlert: (order: OrderWithDetails) => void;
+  closeDeleteAlert: () => void;
 }
 
 const initialOrderState = {
@@ -142,5 +148,11 @@ export const useOrderStore = create<OrderStore>((set) => ({
     activeOrder: null, 
     midtransUrl: null, 
     midtransToken: null 
-  })
+  }),
+
+  // Delete Alert State
+  isDeleteAlertOpen: false,
+  selectedOrderToDelete: null,
+  openDeleteAlert: (order) => set({ isDeleteAlertOpen: true, selectedOrderToDelete: order }),
+  closeDeleteAlert: () => set({ isDeleteAlertOpen: false, selectedOrderToDelete: null })
 }));

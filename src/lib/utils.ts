@@ -92,9 +92,7 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "/" 
   ],
   [Role.STAFF]: [
-    "/customers",
     "/order",
-    "/services",
     "/" 
   ]
 };
@@ -107,4 +105,9 @@ export const hasAccess = (roles: Role[] | undefined, path: string): boolean => {
       allowedPath => path === allowedPath || (allowedPath !== '/' && path.startsWith(allowedPath))
     );
   });
+};
+
+export const canManageData = (roles?: Role[]): boolean => {
+  if (!roles) return false;
+  return roles.includes(Role.SUPERADMIN) || roles.includes(Role.OWNER);
 };

@@ -6,6 +6,7 @@ import { useOrderStore } from "@/store/use-order-store";
 import { OrderTable } from "@/components/order/order-table";
 import { OrderDialog } from "@/components/order/order-dialog";
 import { PaymentDialog } from "@/components/order/payment-dialog";
+import { OrderDeleteAlert } from "@/components/order/order-delete-alert";
 import { LaundryStatus, PaymentStatus } from "@/types/enums";
 import { Plus, Search, AlertTriangle } from "lucide-react";
 
@@ -102,6 +103,7 @@ export default function OrderPage() {
 
       <OrderDialog />
       <PaymentDialog />
+      <OrderDeleteAlert />
     </>
   );
 }
