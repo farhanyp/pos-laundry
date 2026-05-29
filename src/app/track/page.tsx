@@ -60,30 +60,57 @@ export default function TrackPage() {
             <span className="font-medium text-sm">Kembali ke Beranda</span>
           </Link>
           
-          <h1 className="font-display text-[40px] md:text-[56px] font-extrabold text-on-surface tracking-tight text-center leading-tight">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] font-extrabold text-on-surface tracking-tight text-center leading-tight sm:leading-tight lg:leading-tight">
             Lacak Pesanan <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Laundry Anda</span>
           </h1>
-          <p className="mt-4 text-[16px] md:text-[20px] text-on-surface-variant text-center w-full md:w-3/4 lg:w-1/2 leading-relaxed">
+          <p className="mt-4 text-body-lg sm:text-title-md text-on-surface-variant text-center w-full sm:w-10/12 md:w-3/4 lg:w-1/2 leading-relaxed">
             Masukkan nomor faktur pesanan Anda untuk memantau status cucian dan pembayaran secara real-time.
           </p>
 
-          <form onSubmit={handleSearch} className="mt-10 w-full md:w-8/12 lg:w-6/12 relative group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
-              <Search className="h-6 w-6 text-on-surface-variant group-focus-within:text-primary transition-colors" />
+          <form onSubmit={handleSearch} className="mt-8 sm:mt-10 w-full sm:w-10/12 md:w-8/12 lg:w-7/12 relative z-20">
+            <div className="relative w-full group">
+              {/* Focus Glow Background */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[2rem] sm:rounded-full blur-md opacity-0 group-focus-within:opacity-40 transition-opacity duration-500"></div>
+              
+              <div className="relative flex items-center w-full">
+                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none z-10">
+                  <Search className="h-6 w-6 text-on-surface-variant group-focus-within:text-primary transition-colors duration-300" />
+                </div>
+                <input
+                  type="text"
+                  value={invoiceInput}
+                  onChange={(e) => setInvoiceInput(e.target.value)}
+                  className="block w-full pl-16 pr-6 sm:pr-48 py-4 sm:py-5 border-2 border-outline-variant/40 rounded-2xl sm:rounded-full bg-surface/90 backdrop-blur-xl text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary/80 shadow-lg hover:shadow-xl transition-all text-body-lg sm:text-lg font-semibold"
+                  placeholder="Contoh: INV-20231012-1234"
+                  required
+                />
+                
+                {/* Desktop Button - Hidden on mobile, absolute inside input */}
+                <div className="hidden sm:flex absolute inset-y-2 right-2 items-center">
+                  <button
+                    type="submit"
+                    disabled={isLoading || !invoiceInput.trim()}
+                    className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-label-lg font-bold rounded-full shadow-md text-on-primary bg-primary hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 duration-200"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Mencari
+                      </>
+                    ) : (
+                      "Lacak Sekarang"
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
-            <input
-              type="text"
-              value={invoiceInput}
-              onChange={(e) => setInvoiceInput(e.target.value)}
-              className="block w-full pl-14 pr-40 py-5 border-2 border-outline-variant/30 rounded-full bg-surface/80 backdrop-blur-xl text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary shadow-lg hover:shadow-xl transition-all text-lg font-medium"
-              placeholder="Contoh: INV-20231012-1234"
-              required
-            />
-            <div className="absolute inset-y-2 right-2 flex items-center">
+
+            {/* Mobile Button - Visible only on mobile, stacked below input */}
+            <div className="sm:hidden w-full mt-4">
               <button
                 type="submit"
                 disabled={isLoading || !invoiceInput.trim()}
-                className="inline-flex items-center px-8 py-3.5 border border-transparent text-label-lg font-bold rounded-full shadow-md text-on-primary bg-primary hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 duration-200"
+                className="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-label-lg font-bold rounded-2xl shadow-lg text-on-primary bg-primary hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 duration-200"
               >
                 {isLoading ? (
                   <>
@@ -281,19 +308,21 @@ export default function TrackPage() {
                       </h4>
                       <div className="space-y-3">
                         {order.order_items?.map((item: any) => (
-                          <div key={item.id} className="flex justify-between items-center group p-3 hover:bg-surface-variant/30 rounded-2xl transition-colors">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                          <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 group p-3 hover:bg-surface-variant/30 rounded-2xl transition-colors">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                              <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
                                 <Package className="w-5 h-5" />
                               </div>
-                              <div>
-                                <p className="font-bold text-body-md text-on-surface">{item.services?.name}</p>
+                              <div className="flex-1">
+                                <p className="font-bold text-body-md text-on-surface leading-tight sm:leading-normal">{item.services?.name}</p>
                                 <p className="text-body-sm text-on-surface-variant">{item.qty} x {formatCurrency(item.price_per_unit)}</p>
                               </div>
                             </div>
-                            <span className="font-bold text-body-md text-on-surface">
-                              {formatCurrency(item.qty * item.price_per_unit)}
-                            </span>
+                            <div className="w-full sm:w-auto flex justify-end pl-14 sm:pl-0">
+                              <span className="font-bold text-body-md text-on-surface">
+                                {formatCurrency(item.qty * item.price_per_unit)}
+                              </span>
+                            </div>
                           </div>
                         ))}
                       </div>
