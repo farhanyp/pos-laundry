@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { OrderWithDetails } from "@/types/order";
+import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { useOrderStore } from "@/store/use-order-store";
-import { useUpdateOrderStatus } from "@/hooks/use-orders";
+import { useUpdateOrderStatus } from "@/hooks/useOrders";
 import { LaundryStatus } from "@/types/enums";
 
 interface OrderTableProps {
@@ -17,10 +18,15 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
   const { openPaymentDialog } = useOrderStore();
   const updateOrderStatusMutation = useUpdateOrderStatus();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil((orders?.length || 0) / itemsPerPage);
+  const paginatedData = orders?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || [];
+
   if (isLoading) {
     return (
       <div className="w-full h-64 flex items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-[32px] text-primary" data-icon="progress_activity">progress_activity</span>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -29,7 +35,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
     return (
       <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/30 rounded-xl bg-surface-container-lowest">
         <div className="w-12 h-12 bg-surface-container-high rounded-full flex items-center justify-center mb-3">
-          <span className="material-symbols-outlined text-on-surface-variant" data-icon="receipt_long">receipt_long</span>
+          <Receipt className="w-6 h-6 text-on-surface-variant" />
         </div>
         <p className="text-on-surface font-body-lg">No orders found</p>
         <p className="text-on-surface-variant text-body-sm mt-1">Start by creating a new order.</p>
@@ -71,11 +77,11 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
             <th className="p-4 text-label-md font-bold text-on-surface-variant">Status</th>
             <th className="p-4 text-label-md font-bold text-on-surface-variant">Payment</th>
             <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Total</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant text-center">Actions</th>
+            <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-outline-variant/10 bg-surface-container-lowest">
-          {orders.map((order) => {
+          {paginatedData.map((order) => {
             const hasDetails = (order.order_items && order.order_items.length > 0) || (order.order_payments && order.order_payments.length > 0);
             const isExpanded = expandedRows.has(order.id);
 
@@ -84,11 +90,11 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                 <tr className="hover:bg-surface-container-lowest/50 transition-colors group">
                   <td className="p-4">
                     {hasDetails && (
-                      <button 
+                      <button
                         onClick={() => toggleRow(order.id)}
                         className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
                       >
-                        <span className={`material-symbols-outlined text-[18px] transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} data-icon="chevron_right">chevron_right</span>
+                        <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                       </button>
                     )}
                   </td>
@@ -120,56 +126,58 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                     {formatCurrency(order.total_amount)}
                   </td>
                   <td className="p-4">
-                    <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {order.payment_status === 'UNPAID' && order.laundry_status === 'WAITING_PAYMENT' ? (
-                        <button 
-                          onClick={() => openPaymentDialog(order.id, order.total_amount)}
-                          className="px-3 py-1 bg-primary text-on-primary rounded-lg text-label-sm font-bold hover:bg-primary/90 transition-colors"
-                        >
-                          CONTINUE TO PAYMENT
-                        </button>
-                      ) : order.payment_status === 'PAID' && order.laundry_status === 'PROCESS' ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      {/* Payment Action */}
+                      {(order.payment_status === 'UNPAID' || order.payment_status === 'DP') && (
                         <>
-                          <button 
-                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.WAITING_FOR_PICKUP })}
-                            disabled={updateOrderStatusMutation.isPending}
-                            className="px-3 py-1 bg-secondary text-on-secondary rounded-lg text-label-sm font-bold hover:bg-secondary/90 transition-colors disabled:opacity-50"
+                          <button
+                            onClick={() => openPaymentDialog(order)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-label-sm font-medium hover:bg-primary/90 hover:shadow-md transition-all active:scale-95"
                           >
-                            READY TO PICKUP
+                            <CreditCard className="w-4 h-4" />
+                            {order.payment_status === 'DP' ? 'Settle Payment' : 'Pay Now'}
                           </button>
-                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
-                          </button>
-                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
-                          </button>
-                        </>
-                      ) : order.payment_status === 'PAID' && order.laundry_status === 'WAITING_FOR_PICKUP' ? (
-                        <>
-                          <button 
-                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.COMPLETED })}
-                            disabled={updateOrderStatusMutation.isPending}
-                            className="px-3 py-1 bg-tertiary text-on-tertiary rounded-lg text-label-sm font-bold hover:bg-tertiary/90 transition-colors disabled:opacity-50"
-                          >
-                            COMPLETED
-                          </button>
-                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
-                          </button>
-                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Print Receipt">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="print">print</span>
-                          </button>
-                          <button className="p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors" title="View Details">
-                            <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
-                          </button>
+                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
                         </>
                       )}
+
+                      {/* Laundry Status Actions */}
+                      {order.laundry_status === 'PROCESS' && (
+                        <>
+                          <button
+                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.WAITING_FOR_PICKUP })}
+                            disabled={updateOrderStatusMutation.isPending}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-label-sm font-medium hover:bg-secondary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <PackageCheck className="w-4 h-4" />
+                            Ready
+                          </button>
+                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
+                        </>
+                      )}
+
+                      {order.laundry_status === 'WAITING_FOR_PICKUP' && (
+                        <>
+                          <button
+                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.COMPLETED })}
+                            disabled={updateOrderStatusMutation.isPending || order.payment_status === 'DP' || order.payment_status === 'UNPAID'}
+                            title={order.payment_status !== 'PAID' ? 'Payment must be settled first' : 'Mark as Complete'}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-label-sm font-medium hover:bg-tertiary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Complete
+                          </button>
+                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
+                        </>
+                      )}
+
+                      {/* General Actions */}
+                      <button className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors" title="Print Receipt">
+                        <Printer className="w-4 h-4" />
+                      </button>
+                      <button className="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors" title="View Details">
+                        <Eye className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -177,7 +185,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                   <tr className="bg-surface-container-lowest border-b border-outline-variant/10">
                     <td colSpan={7} className="p-0">
                       <div className="px-14 py-4 bg-surface-container-lowest/30 border-l-4 border-primary/40">
-                        
+
                         <div className="grid grid-cols-2 gap-8">
                           <div>
                             <h4 className="text-label-md font-bold text-on-surface-variant mb-2">Order Items ({order.order_items?.length})</h4>
@@ -202,7 +210,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                               </table>
                             </div>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-label-md font-bold text-on-surface-variant mb-2">Payment History</h4>
                             <div className="bg-surface-container rounded-lg border border-outline-variant/10 overflow-hidden">
@@ -239,6 +247,40 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
           })}
         </tbody>
       </table>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/15 bg-surface-container-low">
+          <div className="text-label-sm text-on-surface-variant">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, orders?.length || 0)} of {orders?.length || 0} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed text-on-surface-variant"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded text-label-sm font-medium ${currentPage === page ? 'bg-primary text-on-primary' : 'hover:bg-surface-container-highest text-on-surface'}`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed text-on-surface-variant"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

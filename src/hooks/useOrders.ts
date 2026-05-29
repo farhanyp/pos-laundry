@@ -37,18 +37,56 @@ export const useUpdateOrderStatus = () => {
   });
 };
 
+type PaymentPayload = {
+  orderId: string;
+  paymentMethod: 'CASH' | 'NON_TUNAI';
+  expectedAmount: number;
+  cashGiven: number;
+  totalAmount: number;
+  paymentMode?: 'FULL' | 'DP' | 'SETTLE';
+};
+
 export function useProcessOrderPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { orderId: string, paymentMethod: 'CASH' | 'NON_TUNAI', amountPaid: number, totalAmount: number }) =>
-      processOrderPayment(payload),
+    mutationFn: (payload: PaymentPayload) => processOrderPayment(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Payment processed successfully');
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to process payment');
+    },
+  });
+}
+
+export function useCreateDPMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: PaymentPayload) => processOrderPayment({ ...payload, paymentMode: 'DP' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Down Payment processed successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to process Down Payment');
+    },
+  });
+}
+
+export function useSettlePaymentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: PaymentPayload) => processOrderPayment({ ...payload, paymentMode: 'SETTLE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Payment settled successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to settle payment');
     },
   });
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredRefreshToken } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -45,9 +46,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <span className="material-symbols-outlined text-4xl text-primary animate-spin" data-icon="progress_activity">
-            progress_activity
-          </span>
+          <Loader2 className="w-9 h-9 text-primary animate-spin" />
           <p className="text-on-surface-variant font-label-md">Authenticating...</p>
         </div>
       </div>

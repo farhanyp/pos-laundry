@@ -4,6 +4,7 @@ import { Service } from '@/types/service';
 import { Discount } from '@/types/discount';
 import { Tax } from '@/types/tax';
 import { Fee } from '@/types/fee';
+import { OrderWithDetails } from '@/types/order';
 
 export type PaymentMethod = 'CASH' | 'NON_TUNAI';
 
@@ -60,9 +61,10 @@ interface OrderStore {
 
   // Payment Dialog State
   isPaymentOpen: boolean;
-  paymentOrderId: string | null;
-  paymentTotalAmount: number;
-  openPaymentDialog: (orderId: string, totalAmount: number) => void;
+  activeOrder: OrderWithDetails | null;
+  paymentMode: 'FULL' | 'DP';
+  setPaymentMode: (mode: 'FULL' | 'DP') => void;
+  openPaymentDialog: (order: OrderWithDetails) => void;
   closePaymentDialog: () => void;
 }
 
@@ -123,16 +125,22 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Payment Dialog State
   isPaymentOpen: false,
-  paymentOrderId: null,
-  paymentTotalAmount: 0,
-  openPaymentDialog: (orderId: string, totalAmount: number) => set({
+  activeOrder: null,
+  paymentMode: 'FULL',
+  setPaymentMode: (mode) => set({ paymentMode: mode }),
+  openPaymentDialog: (order: OrderWithDetails) => set({
     isPaymentOpen: true,
-    paymentOrderId: orderId,
-    paymentTotalAmount: totalAmount,
+    activeOrder: order,
+    paymentMode: 'FULL',
     paymentMethod: 'CASH',
     amountPaid: 0,
     midtransUrl: null,
     midtransToken: null
   }),
-  closePaymentDialog: () => set({ isPaymentOpen: false, paymentOrderId: null, paymentTotalAmount: 0, midtransUrl: null, midtransToken: null })
+  closePaymentDialog: () => set({ 
+    isPaymentOpen: false, 
+    activeOrder: null, 
+    midtransUrl: null, 
+    midtransToken: null 
+  })
 }));

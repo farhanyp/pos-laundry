@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getStoredRefreshToken } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 export function GuestGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -42,9 +43,7 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fefae0]">
         <div className="flex flex-col items-center gap-4">
-          <span className="material-symbols-outlined text-4xl text-[#485422] animate-spin" data-icon="progress_activity">
-            progress_activity
-          </span>
+          <Loader2 className="w-9 h-9 text-[#485422] animate-spin" />
           <p className="text-[#46483c] font-medium text-sm">Loading...</p>
         </div>
       </div>

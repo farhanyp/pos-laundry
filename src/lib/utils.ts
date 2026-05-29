@@ -60,3 +60,11 @@ export function formatDateTime(dateString: string): string {
   
   return `${day}-${month}-${year} ${hours}:${minutes}`;
 }
+
+export function calculateDPAmount(totalAmount: number): number {
+  return totalAmount * 0.5; // 50% fixed DP
+}
+
+export function calculateChange(amountPaid: number, expectedAmount: number): number {
+  return Math.max(0, amountPaid - expectedAmount);
+}

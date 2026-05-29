@@ -8,7 +8,7 @@ import { useDiscounts } from "@/hooks/useDiscount";
 import { useTaxes } from "@/hooks/useTax";
 import { useFees } from "@/hooks/useFee";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useCreateOrderTransaction } from "@/hooks/use-orders";
+import { useCreateOrderTransaction } from "@/hooks/useOrders";
 import { formatCurrency, formatWhatsAppNumber } from "@/lib/utils";
 import { Customer } from "@/types/customer";
 import { Service } from "@/types/service";
@@ -52,7 +52,7 @@ export function OrderDialog() {
 
   // Computed Values
   const baseSubtotal = items.reduce((acc, item) => acc + (item.service.price * item.qty), 0);
-  
+
   let discountAmount = 0;
   if (selectedDiscount) {
     if (selectedDiscount.discount_type === 'percentage') {
@@ -123,7 +123,7 @@ export function OrderDialog() {
           service_fee_amount: feeAmount
         }
       });
-      
+
       handleClose();
     } catch (e) {
       console.error(e);
@@ -133,7 +133,7 @@ export function OrderDialog() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-surface-container-low border border-outline-variant/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
-        
+
         {/* Header */}
         <div className="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container">
           <div>
@@ -156,13 +156,13 @@ export function OrderDialog() {
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 bg-surface-container-lowest">
-          
+
           {/* Step 1: Customer Selection */}
           {step === 1 && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-title-md font-bold text-primary">Customer Details</h3>
-                <button 
+                <button
                   onClick={() => setIsNewCustomerMode(!isNewCustomerMode)}
                   className="text-label-md font-bold text-primary hover:text-primary/80 transition-colors"
                 >
@@ -173,7 +173,7 @@ export function OrderDialog() {
               {!isNewCustomerMode ? (
                 <div className="space-y-4">
                   <label className="text-label-md font-bold text-on-surface">Select Customer</label>
-                  <select 
+                  <select
                     className="w-full p-3 rounded-lg bg-surface-container border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     value={selectedCustomer?.id || ""}
                     onChange={(e) => {
@@ -191,35 +191,35 @@ export function OrderDialog() {
                 <form onSubmit={handleSubmitCustomerForm} className="space-y-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/20">
                   <div>
                     <label className="text-label-sm font-bold text-on-surface-variant mb-1 block">Full Name</label>
-                    <input 
+                    <input
                       type="text" required
                       value={customerForm.name}
-                      onChange={e => setCustomerForm({...customerForm, name: e.target.value})}
+                      onChange={e => setCustomerForm({ ...customerForm, name: e.target.value })}
                       className="w-full p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
                       placeholder="e.g. John Doe"
                     />
                   </div>
                   <div>
                     <label className="text-label-sm font-bold text-on-surface-variant mb-1 block">WhatsApp Number</label>
-                    <input 
+                    <input
                       type="text" required
                       value={customerForm.whatsapp_no}
-                      onChange={e => setCustomerForm({...customerForm, whatsapp_no: e.target.value})}
+                      onChange={e => setCustomerForm({ ...customerForm, whatsapp_no: e.target.value })}
                       className="w-full p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
                       placeholder="e.g. 08123456789"
                     />
                   </div>
                   <div>
                     <label className="text-label-sm font-bold text-on-surface-variant mb-1 block">Address (Optional)</label>
-                    <textarea 
+                    <textarea
                       value={customerForm.address}
-                      onChange={e => setCustomerForm({...customerForm, address: e.target.value})}
+                      onChange={e => setCustomerForm({ ...customerForm, address: e.target.value })}
                       className="w-full p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface min-h-[80px]"
                       placeholder="Full delivery address"
                     />
                   </div>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={createCustomerMutation.isPending}
                     className="px-4 py-2 bg-primary-container text-on-primary-container rounded-lg font-label-md hover:bg-primary/20 transition-colors w-full flex items-center justify-center gap-2"
                   >
@@ -300,12 +300,12 @@ export function OrderDialog() {
           {step === 3 && (
             <div className="space-y-6 max-w-2xl mx-auto">
               <h3 className="text-title-md font-bold text-primary mb-2">Financial Adjustments</h3>
-              
+
               <div className="space-y-4">
                 {/* Discount */}
                 <div>
                   <label className="text-label-md font-bold text-on-surface block mb-1">Apply Discount</label>
-                  <select 
+                  <select
                     className="w-full p-3 rounded-lg bg-surface-container border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     value={selectedDiscount?.id || ""}
                     onChange={(e) => {
@@ -323,7 +323,7 @@ export function OrderDialog() {
                 {/* Tax */}
                 <div>
                   <label className="text-label-md font-bold text-on-surface block mb-1">Apply Tax</label>
-                  <select 
+                  <select
                     className="w-full p-3 rounded-lg bg-surface-container border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     value={selectedTax?.id || ""}
                     onChange={(e) => {
@@ -341,7 +341,7 @@ export function OrderDialog() {
                 {/* Fee */}
                 <div>
                   <label className="text-label-md font-bold text-on-surface block mb-1">Apply Service Fee</label>
-                  <select 
+                  <select
                     className="w-full p-3 rounded-lg bg-surface-container border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     value={selectedFee?.id || ""}
                     onChange={(e) => {
@@ -400,10 +400,10 @@ export function OrderDialog() {
               Back
             </button>
           ) : <div />}
-          
+
           {step < 3 && (
-            <button 
-              onClick={nextStep} 
+            <button
+              onClick={nextStep}
               disabled={(step === 1 && !canProceedToStep2) || (step === 2 && !canProceedToStep3)}
               className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -412,7 +412,7 @@ export function OrderDialog() {
           )}
 
           {step === 3 && (
-            <button 
+            <button
               onClick={handleCreateOrder}
               disabled={createOrderMutation.isPending}
               className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

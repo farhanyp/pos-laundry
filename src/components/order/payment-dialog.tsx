@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useOrderStore } from "@/store/use-order-store";
-import { useProcessOrderPayment } from "@/hooks/use-orders";
-import { formatCurrency } from "@/lib/utils";
+import { useCreateDPMutation, useProcessOrderPayment, useSettlePaymentMutation } from "@/hooks/useOrders";
+import { formatCurrency, calculateDPAmount, calculateChange } from "@/lib/utils";
 
 export function PaymentDialog() {
   const {
     isPaymentOpen, closePaymentDialog,
-    paymentOrderId, paymentTotalAmount,
+    activeOrder,
     paymentMethod, setPaymentMethod,
+    paymentMode, setPaymentMode,
     amountPaid, setAmountPaid,
     midtransUrl, setMidtransUrl,
     setMidtransToken,
@@ -17,20 +18,48 @@ export function PaymentDialog() {
     newCustomerData
   } = useOrderStore();
 
-  const processPaymentMutation = useProcessOrderPayment();
+  const processFullPaymentMutation = useProcessOrderPayment();
+  const processDPMutation = useCreateDPMutation();
+  const processSettleMutation = useSettlePaymentMutation();
+
   const [isCopied, setIsCopied] = useState(false);
 
-  if (!isPaymentOpen) return null;
+  if (!isPaymentOpen || !activeOrder) return null;
+
+  const isAlreadyDP = activeOrder.payment_status === 'DP';
+  
+  // Calculations
+  const totalBill = activeOrder.total_amount;
+  const dpAmount = calculateDPAmount(totalBill);
+  
+  let expectedAmount = totalBill;
+  if (isAlreadyDP) {
+    expectedAmount = activeOrder.remaining_amount;
+  } else if (paymentMode === 'DP') {
+    expectedAmount = dpAmount;
+  }
+
+  const changeReturn = calculateChange(amountPaid, expectedAmount);
+  const isValidCash = paymentMethod === 'NON_TUNAI' || amountPaid >= expectedAmount;
 
   const handleProcessPayment = async () => {
-    if (!paymentOrderId) return;
     try {
-      const result = await processPaymentMutation.mutateAsync({
-        orderId: paymentOrderId,
+      const payload = {
+        orderId: activeOrder.id,
         paymentMethod,
-        amountPaid: paymentMethod === 'CASH' ? amountPaid : paymentTotalAmount,
-        totalAmount: paymentTotalAmount
-      });
+        expectedAmount,
+        cashGiven: amountPaid,
+        totalAmount: activeOrder.total_amount,
+      };
+
+      let result;
+      if (isAlreadyDP) {
+        result = await processSettleMutation.mutateAsync(payload);
+      } else if (paymentMode === 'DP') {
+        result = await processDPMutation.mutateAsync(payload);
+      } else {
+        result = await processFullPaymentMutation.mutateAsync(payload);
+      }
 
       if (paymentMethod === 'NON_TUNAI') {
         setMidtransUrl(result?.redirectUrl || '');
@@ -100,9 +129,30 @@ export function PaymentDialog() {
           {!midtransUrl ? (
             <div className="space-y-8 animate-in fade-in duration-300">
               <div className="text-center">
-                <h3 className="text-title-lg font-bold text-primary mb-2">Payment Configuration</h3>
-                <p className="text-body-md text-on-surface-variant">Select a payment method to complete the transaction</p>
+                <h3 className="text-title-lg font-bold text-primary mb-2">
+                  {isAlreadyDP ? 'Pelunasan Sisa Tagihan' : 'Payment Configuration'}
+                </h3>
+                <p className="text-body-md text-on-surface-variant">
+                  {isAlreadyDP ? 'Selesaikan sisa pembayaran untuk pengambilan laundry' : 'Pilih metode pembayaran untuk transaksi ini'}
+                </p>
               </div>
+
+              {!isAlreadyDP && (
+                <div className="flex p-1 bg-surface-container-high rounded-xl mb-6">
+                  <button
+                    onClick={() => { setPaymentMode('FULL'); setAmountPaid(0); }}
+                    className={`flex-1 py-2 text-label-md font-bold rounded-lg transition-colors ${paymentMode === 'FULL' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+                  >
+                    Bayar Lunas
+                  </button>
+                  <button
+                    onClick={() => { setPaymentMode('DP'); setAmountPaid(0); }}
+                    className={`flex-1 py-2 text-label-md font-bold rounded-lg transition-colors ${paymentMode === 'DP' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+                  >
+                    Bayar DP (50%)
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
@@ -136,12 +186,38 @@ export function PaymentDialog() {
               <div className="mt-8 transition-all duration-300">
                 {paymentMethod === 'CASH' && (
                   <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 fade-in">
-                    <div className="flex justify-between items-end border-b border-outline-variant/20 pb-4">
-                      <div>
-                        <span className="text-on-surface-variant text-label-md block mb-1">Total Bill</span>
-                        <span className="text-title-lg font-bold text-primary">{formatCurrency(paymentTotalAmount)}</span>
+                    
+                    {isAlreadyDP ? (
+                      <div className="space-y-3 border-b border-outline-variant/20 pb-4">
+                        <div className="flex justify-between items-center text-on-surface-variant">
+                          <span className="text-label-md">Total Tagihan</span>
+                          <span className="font-medium">{formatCurrency(activeOrder.total_amount)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-on-surface-variant">
+                          <span className="text-label-md">Sudah Dibayar (DP)</span>
+                          <span className="font-medium">{formatCurrency(activeOrder.paid_amount)}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2">
+                          <span className="text-label-lg font-bold text-error">Sisa (Kekurangan)</span>
+                          <span className="text-title-lg font-bold text-error">{formatCurrency(expectedAmount)}</span>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex justify-between items-end border-b border-outline-variant/20 pb-4">
+                        <div>
+                          <span className="text-on-surface-variant text-label-md block mb-1">
+                            {paymentMode === 'DP' ? 'Down Payment (50%)' : 'Total Bill'}
+                          </span>
+                          <span className="text-title-lg font-bold text-primary">{formatCurrency(expectedAmount)}</span>
+                        </div>
+                        {paymentMode === 'DP' && (
+                          <div className="text-right">
+                            <span className="text-on-surface-variant text-label-sm block mb-1">Total Keseluruhan</span>
+                            <span className="text-label-md font-medium text-on-surface line-through opacity-70">{formatCurrency(totalBill)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <label className="text-label-md font-bold text-on-surface mb-2 block">Cash Received</label>
@@ -161,10 +237,10 @@ export function PaymentDialog() {
                       </div>
                     </div>
 
-                    <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 flex justify-between items-center mt-2">
-                      <span className="text-on-surface-variant font-bold text-label-md">Change Return:</span>
-                      <span className={`text-title-md font-bold ${amountPaid >= paymentTotalAmount ? 'text-secondary' : 'text-error'}`}>
-                        {formatCurrency(Math.max(0, amountPaid - paymentTotalAmount))}
+                      <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 flex justify-between items-center mt-2">
+                      <span className="text-on-surface-variant font-bold text-label-md">Kembalian:</span>
+                      <span className={`text-title-md font-bold ${amountPaid >= expectedAmount ? 'text-secondary' : 'text-error'}`}>
+                        {formatCurrency(changeReturn)}
                       </span>
                     </div>
                   </div>
@@ -198,7 +274,7 @@ export function PaymentDialog() {
                         <span className="text-[10px] font-bold px-2 py-1 bg-tertiary/10 text-tertiary rounded-full uppercase tracking-wider">Aman</span>
                       </div>
                       <p className="text-display-sm font-black text-on-surface tracking-tight flex items-baseline justify-center gap-1 group-hover:scale-105 transition-transform duration-300 origin-center">
-                        {formatCurrency(paymentTotalAmount)}
+                        {formatCurrency(expectedAmount)}
                       </p>
                     </div>
                   </div>
@@ -266,10 +342,10 @@ export function PaymentDialog() {
           <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-end">
             <button
               onClick={handleProcessPayment}
-              disabled={paymentMethod === 'CASH' && amountPaid < paymentTotalAmount}
+              disabled={!isValidCash || processFullPaymentMutation.isPending || processDPMutation.isPending || processSettleMutation.isPending}
               className="px-8 py-2 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {processPaymentMutation.isPending ? (
+              {(processFullPaymentMutation.isPending || processDPMutation.isPending || processSettleMutation.isPending) ? (
                 <span className="material-symbols-outlined animate-spin text-sm" data-icon="progress_activity">progress_activity</span>
               ) : (
                 <span className="material-symbols-outlined text-sm" data-icon="task_alt">task_alt</span>

@@ -109,7 +109,14 @@ export const createOrderTransaction = async (payload: OrderPayload): Promise<str
   return orderId;
 };
 
-export const processOrderPayment = async (payload: { orderId: string, paymentMethod: 'CASH' | 'NON_TUNAI', amountPaid: number, totalAmount: number }): Promise<{ redirectUrl?: string, token?: string }> => {
+export const processOrderPayment = async (payload: { 
+  orderId: string, 
+  paymentMethod: 'CASH' | 'NON_TUNAI', 
+  expectedAmount: number, 
+  cashGiven: number, 
+  totalAmount: number,
+  paymentMode?: 'FULL' | 'DP' | 'SETTLE'
+}): Promise<{ redirectUrl?: string, token?: string }> => {
   const supabase = createClient();
   const isCash = payload.paymentMethod === 'CASH';
 
@@ -146,7 +153,7 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
     let item_details: any[] = [];
     
     // Only send detailed items if it's a full payment to avoid Midtrans validation error (sum of items must equal gross_amount)
-    if (payload.amountPaid === order.total_amount && order.order_items) {
+    if (payload.paymentMode === 'FULL' && payload.expectedAmount === order.total_amount && order.order_items) {
       item_details = order.order_items.map((item: any, index: number) => ({
         id: `item-${index}`,
         price: item.price_per_unit,
@@ -164,9 +171,9 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
         item_details.push({ id: 'fee', price: order.service_fee_amount, quantity: 1, name: 'Service Fee' });
       }
 
-      // Safety check: verify sum matches exact amountPaid
+      // Safety check: verify sum matches exact expectedAmount
       const calculatedSum = item_details.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-      if (calculatedSum !== payload.amountPaid) {
+      if (calculatedSum !== payload.expectedAmount) {
         item_details = []; // Reset if mismatch, fallback to generic
       }
     }
@@ -177,9 +184,9 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        order_id: payload.orderId,
+        order_id: `${payload.orderId}-${Date.now()}`,
         invoice_no: order.invoice_no,
-        gross_amount: payload.amountPaid,
+        gross_amount: payload.expectedAmount,
         customer_details: order.customers,
         item_details: item_details.length > 0 ? item_details : undefined
       })
@@ -202,7 +209,7 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
     .from('order_payments')
     .insert([{
       order_id: payload.orderId,
-      amount: payload.amountPaid,
+      amount: payload.expectedAmount,
       payment_type: isCash ? 'TUNAI' : 'NON_TUNAI',
       midtrans_snap_token: midtransToken,
       midtrans_payment_url: midtransRedirectUrl,
@@ -211,19 +218,36 @@ export const processOrderPayment = async (payload: { orderId: string, paymentMet
 
   if (paymentError) throw new Error(`Payment Error: ${paymentError.message}`);
 
-  const remainingAmount = Math.max(0, payload.totalAmount - payload.amountPaid);
-  const changeAmount = Math.max(0, payload.amountPaid - payload.totalAmount);
-  // For NON_TUNAI, the actual payment hasn't been completed yet.
-  const isPaid = isCash && remainingAmount === 0;
+  // Fetch existing order to calculate cumulative paid amount if SETTLE
+  const { data: currentOrder } = await supabase.from('orders').select('paid_amount').eq('id', payload.orderId).single();
+  const currentPaid = currentOrder?.paid_amount || 0;
+
+  let newPaidAmount = isCash ? (currentPaid + payload.expectedAmount) : currentPaid;
+  let newRemaining = Math.max(0, payload.totalAmount - newPaidAmount);
+  let changeAmount = Math.max(0, payload.cashGiven - payload.expectedAmount);
+  
+  let newPaymentStatus = PaymentStatus.UNPAID;
+  let newLaundryStatus = LaundryStatus.WAITING_PAYMENT;
+
+  if (isCash) {
+    if (payload.paymentMode === 'DP') {
+      newPaymentStatus = PaymentStatus.DP;
+      newLaundryStatus = LaundryStatus.PROCESS;
+    } else {
+      // FULL or SETTLE
+      newPaymentStatus = PaymentStatus.PAID;
+      newLaundryStatus = LaundryStatus.PROCESS;
+    }
+  }
 
   const { error: updateError } = await supabase
     .from('orders')
     .update({
-      payment_status: isPaid ? PaymentStatus.PAID : PaymentStatus.UNPAID,
-      laundry_status: isPaid ? LaundryStatus.PROCESS : LaundryStatus.WAITING_PAYMENT,
-      paid_amount: isCash ? payload.amountPaid : 0, // Wait for webhook to update paid_amount for NON_TUNAI
-      remaining_amount: isCash ? remainingAmount : payload.totalAmount, // Keep full remaining amount for now
-      change_amount: isCash ? changeAmount : 0
+      payment_status: newPaymentStatus !== PaymentStatus.UNPAID ? newPaymentStatus : undefined,
+      laundry_status: newLaundryStatus !== LaundryStatus.WAITING_PAYMENT ? newLaundryStatus : undefined,
+      paid_amount: isCash ? newPaidAmount : undefined, 
+      remaining_amount: isCash ? newRemaining : undefined,
+      change_amount: isCash ? changeAmount : undefined
     })
     .eq('id', payload.orderId);
 
@@ -246,7 +270,15 @@ export const updateOrderStatus = async ({
 }): Promise<void> => {
   const supabase = createClient();
   const updates: any = {};
-  if (laundryStatus) updates.laundry_status = laundryStatus;
+  if (laundryStatus) {
+    if (laundryStatus === LaundryStatus.COMPLETED) {
+      const { data: order } = await supabase.from('orders').select('remaining_amount, payment_status').eq('id', orderId).single();
+      if (order && (order.remaining_amount > 0 || order.payment_status === PaymentStatus.DP)) {
+        throw new Error("Cannot complete order: Payment is not settled yet.");
+      }
+    }
+    updates.laundry_status = laundryStatus;
+  }
   if (paymentStatus) updates.payment_status = paymentStatus;
 
   const { error } = await supabase

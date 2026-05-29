@@ -4,12 +4,10 @@ import { MidtransPaymentLinkRequest } from '@/types/midtrans';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('[Midtrans API] Received request body:', body);
 
     const { order_id, invoice_no, gross_amount, customer_details, item_details } = body;
 
     if (!order_id || !gross_amount) {
-      console.log('[Midtrans API] Missing parameters');
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
@@ -45,8 +43,6 @@ export async function POST(req: Request) {
       enabled_payments: ["qris", "other_qris"]
     };
 
-    console.log('[Midtrans API] Sending parameter to Midtrans:', JSON.stringify(parameter, null, 2));
-
     const response = await fetch(`${baseUrl}/v1/payment-links`, {
       method: 'POST',
       headers: {
@@ -58,10 +54,8 @@ export async function POST(req: Request) {
     });
 
     const transaction = await response.json();
-    console.log('[Midtrans API] Response from Midtrans:', JSON.stringify(transaction, null, 2));
 
     if (!response.ok) {
-      console.error('[Midtrans API] Error Response:', transaction);
       return NextResponse.json({
         error: transaction.error_messages ? transaction.error_messages.join(', ') : 'Failed to create payment link'
       }, { status: response.status });

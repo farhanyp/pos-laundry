@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
+import { LayoutDashboard, Shirt, LayoutGrid, Tag, Wallet, Users, Receipt, Loader2, LogOut } from 'lucide-react';
 
 export function Sidebar() {
   const { logoutMutation } = useLogout();
@@ -31,31 +32,31 @@ export function Sidebar() {
       </div>
       <nav className="flex-grow">
         <Link className={getLinkClassName("/")} href="/">
-          <span className="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+          <LayoutDashboard className="w-6 h-6" />
           <span className="font-body-md text-body-md">Dashboard</span>
         </Link>
         <Link className={getLinkClassName("/order")} href="/order">
-          <span className="material-symbols-outlined" data-icon="local_laundry_service">local_laundry_service</span>
+          <Shirt className="w-6 h-6" />
           <span className="font-body-md text-body-md">Active Orders</span>
         </Link>
         <Link className={getLinkClassName("/services")} href="/services">
-          <span className="material-symbols-outlined" data-icon="category">category</span>
+          <LayoutGrid className="w-6 h-6" />
           <span className="font-body-md text-body-md">Laundry Catalog</span>
         </Link>
         <Link className={getLinkClassName("/discounts")} href="/discounts">
-          <span className="material-symbols-outlined" data-icon="sell">sell</span>
+          <Tag className="w-6 h-6" />
           <span className="font-body-md text-body-md">Discounts</span>
         </Link>
         <Link className={getLinkClassName("/fees")} href="/fees">
-          <span className="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+          <Wallet className="w-6 h-6" />
           <span className="font-body-md text-body-md">Fees</span>
         </Link>
         <Link className={getLinkClassName("/customers")} href="/customers">
-          <span className="material-symbols-outlined" data-icon="group">group</span>
+          <Users className="w-6 h-6" />
           <span className="font-body-md text-body-md">Customer Database</span>
         </Link>
         <Link className={getLinkClassName("/taxes")} href="/taxes">
-          <span className="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+          <Receipt className="w-6 h-6" />
           <span className="font-body-md text-body-md">Taxes</span>
         </Link>
       </nav>
@@ -76,9 +77,9 @@ export function Sidebar() {
             className="w-full flex items-center justify-center gap-2 p-2 text-error font-label-md border border-error/20 rounded-lg hover:bg-error/5 transition-colors active:scale-95 duration-150 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? (
-              <span className="material-symbols-outlined text-sm animate-spin" data-icon="progress_activity">progress_activity</span>
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <span className="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+              <LogOut className="w-4 h-4" />
             )}
             {isLoggingOut ? "Logging out..." : "Logout"}
           </button>
