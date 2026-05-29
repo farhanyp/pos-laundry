@@ -20,6 +20,7 @@ export interface DashboardStats {
   activeLaundry: number;
   unpaidAmount: number;
   chartData: {
+    daily: { label: string; value: number }[];
     weekly: { label: string; value: number }[];
     monthly: { label: string; value: number }[];
   };
@@ -168,8 +169,15 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
 
   if (chartError) throw new Error(chartError.message);
 
+  const dailyMap = new Map<string, { label: string; value: number }>();
   const weeklyMap = new Map<string, { label: string; value: number }>();
   const monthlyMap = new Map<string, { label: string; value: number }>();
+
+  // Initialize daily map (Today, 8 blocks of 3 hours)
+  const timeBlocks = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+  timeBlocks.forEach(block => {
+    dailyMap.set(block, { label: block, value: 0 });
+  });
 
   // Initialize weekly map (last 7 days)
   const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -194,6 +202,18 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   chartOrders?.forEach(order => {
     const orderDate = new Date(order.created_at);
     const amount = Number(order.paid_amount || 0);
+
+    // Daily match (only for today)
+    if (orderDate.toDateString() === now.toDateString()) {
+      const hour = orderDate.getHours();
+      const blockIndex = Math.floor(hour / 3);
+      if (blockIndex >= 0 && blockIndex < timeBlocks.length) {
+        const blockKey = timeBlocks[blockIndex];
+        if (dailyMap.has(blockKey)) {
+          dailyMap.get(blockKey)!.value += amount;
+        }
+      }
+    }
 
     // Weekly match
     const dateStr = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
@@ -229,6 +249,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     activeLaundry: activeLaundryCount || 0,
     unpaidAmount,
     chartData: {
+      daily: Array.from(dailyMap.values()),
       weekly: Array.from(weeklyMap.values()),
       monthly: Array.from(monthlyMap.values())
     },

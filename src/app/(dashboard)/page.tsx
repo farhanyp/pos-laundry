@@ -10,11 +10,13 @@ import { formatCurrency } from '@/lib/utils';
 export default function DashboardPage() {
   const { setIsOpen } = useOrderStore();
   const { data: stats, isLoading } = useDashboardStats();
-  const [chartView, setChartView] = useState<'weekly' | 'monthly'>('weekly');
+  const [chartView, setChartView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-  const currentChartData = chartView === 'weekly'
-    ? (stats?.chartData?.weekly || [])
-    : (stats?.chartData?.monthly || []);
+  const currentChartData = chartView === 'daily' 
+    ? (stats?.chartData?.daily || [])
+    : chartView === 'weekly'
+      ? (stats?.chartData?.weekly || [])
+      : (stats?.chartData?.monthly || []);
 
   const maxChartValue = currentChartData.length > 0
     ? Math.max(...currentChartData.map(d => d.value), 1) // At least 1 to avoid division by zero
@@ -108,19 +110,25 @@ export default function DashboardPage() {
               <div>
                 <h3 className="font-display text-headline-sm text-primary">Performa Penjualan</h3>
                 <p className="text-on-surface-variant text-body-md mt-1">
-                  Pantau tren pendapatan Anda secara {chartView === 'weekly' ? 'mingguan' : 'bulanan'}
+                  Pantau tren pendapatan Anda secara {chartView === 'daily' ? 'harian' : chartView === 'weekly' ? 'mingguan' : 'bulanan'}
                 </p>
               </div>
               <div className="flex bg-surface-variant/30 p-1 rounded-xl w-fit border border-outline-variant/10">
                 <button
+                  onClick={() => setChartView('daily')}
+                  className={`text-label-md px-3 sm:px-4 py-2 rounded-lg transition-all duration-300 ${chartView === 'daily' ? 'bg-primary text-on-primary shadow-md transform scale-105' : 'text-on-surface-variant hover:text-primary'}`}
+                >
+                  Harian
+                </button>
+                <button
                   onClick={() => setChartView('weekly')}
-                  className={`text-label-md px-4 py-2 rounded-lg transition-all duration-300 ${chartView === 'weekly' ? 'bg-primary text-on-primary shadow-md transform scale-105' : 'text-on-surface-variant hover:text-primary'}`}
+                  className={`text-label-md px-3 sm:px-4 py-2 rounded-lg transition-all duration-300 ${chartView === 'weekly' ? 'bg-primary text-on-primary shadow-md transform scale-105' : 'text-on-surface-variant hover:text-primary'}`}
                 >
                   Mingguan
                 </button>
                 <button
                   onClick={() => setChartView('monthly')}
-                  className={`text-label-md px-4 py-2 rounded-lg transition-all duration-300 ${chartView === 'monthly' ? 'bg-primary text-on-primary shadow-md transform scale-105' : 'text-on-surface-variant hover:text-primary'}`}
+                  className={`text-label-md px-3 sm:px-4 py-2 rounded-lg transition-all duration-300 ${chartView === 'monthly' ? 'bg-primary text-on-primary shadow-md transform scale-105' : 'text-on-surface-variant hover:text-primary'}`}
                 >
                   Bulanan
                 </button>
@@ -128,13 +136,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Beautiful CSS Bar Chart */}
-            <div className="flex-grow relative mt-2 flex items-end justify-between gap-2 sm:gap-4 pt-10">
+            <div className="flex-grow relative mt-2 flex items-end justify-between gap-1 sm:gap-4 pt-12">
               {/* Background horizontal lines */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8">
-                {[4, 3, 2, 1, 0].map((step) => (
+                {[5, 4, 3, 2, 1, 0].map((step) => (
                   <div key={step} className="flex items-center w-full">
                     <span className="text-[10px] text-on-surface-variant/60 w-16 hidden sm:block">
-                      {formatCurrency((maxChartValue / 4) * step).replace('Rp', '').trim().split(',')[0]}
+                      {formatCurrency((maxChartValue / 5) * step).replace('Rp', '').trim().split(',')[0]}
                     </span>
                     <div className="flex-grow border-t border-outline-variant/20 border-dashed h-0"></div>
                   </div>
@@ -147,21 +155,29 @@ export default function DashboardPage() {
                 return (
                   <div key={idx} className="relative flex flex-col items-center flex-grow group h-full justify-end z-10 pb-8">
                     {/* Tooltip on Hover */}
-                    <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-primary-container text-on-primary-container text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap z-20">
-                      {formatCurrency(data.value)}
+                    <div className="absolute -top-14 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-primary-container text-on-primary-container text-[11px] font-bold px-3 py-2 rounded-lg shadow-xl pointer-events-none whitespace-nowrap z-20 flex flex-col items-center">
+                      <span>{formatCurrency(data.value)}</span>
+                      <span className="text-[9px] font-normal opacity-80 mt-0.5">{data.label}</span>
                     </div>
 
                     {/* Bar Container */}
-                    <div className="w-full max-w-[48px] bg-secondary-container/50 rounded-t-lg relative overflow-hidden group-hover:bg-secondary-container transition-colors duration-300 cursor-pointer h-full flex items-end">
+                    <div className="w-full max-w-[40px] bg-secondary-container/50 rounded-t-lg relative overflow-hidden group-hover:bg-secondary-container transition-colors duration-300 cursor-pointer h-full flex items-end">
                       {/* Animated Fill */}
                       <div
-                        className="w-full bg-primary rounded-t-lg transition-all duration-1000 ease-out group-hover:bg-primary/90"
+                        className="w-full bg-primary rounded-t-lg transition-all duration-1000 ease-out group-hover:bg-primary/90 relative"
                         style={{ height: `${heightPercentage}%` }}
-                      ></div>
+                      >
+                        {/* Value inside bar if it's tall enough */}
+                        {heightPercentage > 15 && data.value > 0 && (
+                          <span className="absolute top-2 w-full text-center text-[9px] font-bold text-on-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -rotate-90 origin-center translate-y-4">
+                            {(data.value / 1000).toFixed(0)}k
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* X-Axis Label */}
-                    <span className="absolute bottom-0 text-[11px] sm:text-label-sm text-on-surface-variant mt-3 font-medium group-hover:text-primary transition-colors">
+                    <span className="absolute bottom-0 text-[10px] sm:text-[11px] text-on-surface-variant mt-3 font-medium group-hover:text-primary transition-colors text-center w-full overflow-hidden text-ellipsis whitespace-nowrap">
                       {data.label}
                     </span>
                   </div>
