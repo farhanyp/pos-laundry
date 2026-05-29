@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { OrderWithDetails } from "@/types/order";
-import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle } from "lucide-react";
+import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle, ShoppingBag, Shirt, Banknote, QrCode, ChevronDown } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { useOrderStore } from "@/store/use-order-store";
 import { useUpdateOrderStatus } from "@/hooks/useOrders";
@@ -37,8 +37,8 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
         <div className="w-12 h-12 bg-surface-container-high rounded-full flex items-center justify-center mb-3">
           <Receipt className="w-6 h-6 text-on-surface-variant" />
         </div>
-        <p className="text-on-surface font-body-lg">No orders found</p>
-        <p className="text-on-surface-variant text-body-sm mt-1">Start by creating a new order.</p>
+        <p className="text-on-surface font-body-lg">Tidak ada pesanan ditemukan</p>
+        <p className="text-on-surface-variant text-body-sm mt-1">Mulai dengan membuat pesanan baru.</p>
       </div>
     );
   }
@@ -66,191 +66,335 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
     }
   };
 
-  return (
-    <div className="w-full overflow-x-auto rounded-lg border border-outline-variant/20">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-surface-container border-b border-outline-variant/20">
-            <th className="p-4 text-label-md font-bold text-on-surface-variant w-10"></th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant">Invoice & Date</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant">Customer</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant">Status</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant">Payment</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Total</th>
-            <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-outline-variant/10 bg-surface-container-lowest">
-          {paginatedData.map((order) => {
-            const hasDetails = (order.order_items && order.order_items.length > 0) || (order.order_payments && order.order_payments.length > 0);
-            const isExpanded = expandedRows.has(order.id);
+  // Reusable Order Details Component for both Mobile and Desktop views
+  const OrderDetailsView = ({ order }: { order: OrderWithDetails }) => (
+    <div className="p-4 md:p-6 bg-surface-container-low rounded-xl md:rounded-2xl border border-outline-variant/20 shadow-sm relative">
+      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary to-tertiary rounded-l-xl md:rounded-l-2xl"></div>
+      
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 ml-2 md:ml-0">
+        
+        {/* Order Items List */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <h4 className="text-title-sm font-bold text-on-surface">Detail Pesanan</h4>
+            <span className="bg-surface-container-highest px-2.5 py-0.5 rounded-full text-xs font-bold text-on-surface-variant">
+              {order.order_items?.length} items
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            {order.order_items?.map(item => (
+              <div key={item.id} className="flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/20 hover:shadow-sm transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Shirt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-label-md font-bold text-on-surface leading-tight mb-0.5 line-clamp-1">{item.services?.name}</p>
+                    <p className="text-body-sm text-on-surface-variant">{item.qty} {item.services?.unit} x {formatCurrency(item.price_per_unit)}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-label-md font-bold text-on-surface">{formatCurrency(item.qty * item.price_per_unit)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            return (
-              <React.Fragment key={order.id}>
-                <tr className="hover:bg-surface-container-lowest/50 transition-colors group">
-                  <td className="p-4">
-                    {hasDetails && (
-                      <button
-                        onClick={() => toggleRow(order.id)}
-                        className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
-                      >
-                        <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-                      </button>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className="text-body-md font-bold text-primary">{order.invoice_no}</span>
-                      <span className="text-body-sm text-on-surface-variant">
-                        {formatDateTime(order.created_at)}
-                      </span>
+        {/* Payment History & Summary */}
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
+                <Receipt className="w-5 h-5" />
+              </div>
+              <h4 className="text-title-sm font-bold text-on-surface">Riwayat Pembayaran</h4>
+            </div>
+
+            {order.order_payments && order.order_payments.length > 0 ? (
+              <div className="space-y-3">
+                {order.order_payments?.map(payment => (
+                  <div key={payment.id} className="flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-secondary/20 hover:shadow-sm transition-all group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-colors ${payment.payment_type === 'TUNAI' ? 'bg-green-500/10 text-green-600 group-hover:bg-green-500/20' : 'bg-blue-500/10 text-blue-600 group-hover:bg-blue-500/20'}`}>
+                        {payment.payment_type === 'TUNAI' ? <Banknote className="w-5 h-5" /> : <QrCode className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-label-md font-bold text-on-surface leading-tight mb-0.5">
+                          {payment.payment_type === 'TUNAI' ? 'Cash' : 'QRIS / E-Wallet'}
+                        </p>
+                        <p className="text-body-sm text-on-surface-variant">{formatDateTime(payment.created_at)}</p>
+                      </div>
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className="text-body-md font-bold text-on-surface">{order.customers?.name || "Unknown"}</span>
-                      <span className="text-body-sm text-on-surface-variant">{order.customers?.whatsapp_no}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-md text-label-sm font-bold ${getStatusColor(order.laundry_status)}`}>
+                    <p className="text-label-md shrink-0 font-bold text-on-surface">{formatCurrency(payment.amount)}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 text-center text-on-surface-variant text-body-sm flex flex-col items-center justify-center gap-2 h-[100px] border-dashed">
+                <Receipt className="w-6 h-6 opacity-50" />
+                Belum ada histori pembayaran
+              </div>
+            )}
+          </div>
+
+          <div className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/10 shadow-sm">
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between text-on-surface-variant">
+                <span>Subtotal</span>
+                <span className="font-medium text-on-surface">{formatCurrency(order.subtotal)}</span>
+              </div>
+              {(order.discount_amount ?? 0) > 0 && (
+                <div className="flex justify-between text-error">
+                  <span>Diskon</span>
+                  <span className="font-bold">-{formatCurrency(order.discount_amount)}</span>
+                </div>
+              )}
+              {(order.tax_amount ?? 0) > 0 && (
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Pajak</span>
+                  <span className="font-medium text-on-surface">+{formatCurrency(order.tax_amount)}</span>
+                </div>
+              )}
+              {(order.service_fee_amount ?? 0) > 0 && (
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Layanan</span>
+                  <span className="font-medium text-on-surface">+{formatCurrency(order.service_fee_amount)}</span>
+                </div>
+              )}
+              <div className="pt-3 mt-3 border-t border-outline-variant/20 flex justify-between font-bold text-on-surface items-center">
+                <span className="text-label-lg">Total Keseluruhan</span>
+                <span className="text-title-md text-primary">{formatCurrency(order.total_amount)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-on-surface items-center bg-secondary/5 p-2 rounded-lg -mx-2 px-2">
+                <span className="text-label-md text-secondary">Sudah Dibayar</span>
+                <span className="text-label-lg text-secondary">{formatCurrency(order.paid_amount)}</span>
+              </div>
+              {order.remaining_amount > 0 && (
+                <div className="flex justify-between font-bold items-center bg-error/5 p-2 rounded-lg -mx-2 px-2 mt-1">
+                  <span className="text-label-md text-error">Sisa Kekurangan</span>
+                  <span className="text-label-lg text-error">{formatCurrency(order.remaining_amount)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  const OrderActions = ({ order }: { order: OrderWithDetails }) => (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Payment Action */}
+      {(order.payment_status === 'UNPAID' || order.payment_status === 'DP') && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); openPaymentDialog(order); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-label-sm font-medium hover:bg-primary/90 hover:shadow-md transition-all active:scale-95 flex-1 md:flex-none justify-center"
+          >
+            <CreditCard className="w-4 h-4" />
+            {order.payment_status === 'DP' ? 'Lunasi Pembayaran' : 'Bayar Sekarang'}
+          </button>
+          <div className="hidden md:block w-px h-6 bg-outline-variant/30 mx-1"></div>
+        </>
+      )}
+
+      {/* Laundry Status Actions */}
+      {order.laundry_status === 'PROCESS' && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.WAITING_FOR_PICKUP }); }}
+            disabled={updateOrderStatusMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-label-sm font-medium hover:bg-secondary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 flex-1 md:flex-none justify-center"
+          >
+            <PackageCheck className="w-4 h-4" />
+            Selesai Cuci
+          </button>
+          <div className="hidden md:block w-px h-6 bg-outline-variant/30 mx-1"></div>
+        </>
+      )}
+
+      {order.laundry_status === 'WAITING_FOR_PICKUP' && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.COMPLETED }); }}
+            disabled={updateOrderStatusMutation.isPending || order.payment_status === 'DP' || order.payment_status === 'UNPAID'}
+            title={order.payment_status !== 'PAID' ? 'Pembayaran harus dilunasi terlebih dahulu' : 'Tandai Selesai'}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-label-sm font-medium hover:bg-tertiary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-none justify-center"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Selesai
+          </button>
+          <div className="hidden md:block w-px h-6 bg-outline-variant/30 mx-1"></div>
+        </>
+      )}
+
+      {/* General Actions */}
+      <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors border md:border-none border-primary/20" title="Cetak Struk">
+        <Printer className="w-4 h-4" />
+      </button>
+      <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors border md:border-none border-outline-variant/20" title="Lihat Detail">
+        <Eye className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="w-full">
+      
+      {/* ---------------- MOBILE CARD VIEW ---------------- */}
+      <div className="lg:hidden flex flex-col gap-4">
+        {paginatedData.map((order) => {
+          const hasDetails = (order.order_items && order.order_items.length > 0) || (order.order_payments && order.order_payments.length > 0);
+          const isExpanded = expandedRows.has(order.id);
+
+          return (
+            <div key={order.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
+              {/* Card Header (Clickable for details) */}
+              <div 
+                className="p-4 flex flex-col gap-3 cursor-pointer hover:bg-surface-container-lowest/80 transition-colors"
+                onClick={() => hasDetails && toggleRow(order.id)}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-label-md font-bold text-primary block">{order.invoice_no}</span>
+                    <span className="text-body-sm text-on-surface-variant">{formatDateTime(order.created_at)}</span>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${getStatusColor(order.laundry_status)}`}>
                       {order.laundry_status.replace(/_/g, ' ')}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-md text-label-sm font-bold ${getStatusColor(order.payment_status)}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${getStatusColor(order.payment_status)}`}>
                       {order.payment_status}
                     </span>
-                  </td>
-                  <td className="p-4 text-body-md font-bold text-on-surface text-right">
-                    {formatCurrency(order.total_amount)}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-1.5">
-                      {/* Payment Action */}
-                      {(order.payment_status === 'UNPAID' || order.payment_status === 'DP') && (
-                        <>
-                          <button
-                            onClick={() => openPaymentDialog(order)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-label-sm font-medium hover:bg-primary/90 hover:shadow-md transition-all active:scale-95"
-                          >
-                            <CreditCard className="w-4 h-4" />
-                            {order.payment_status === 'DP' ? 'Settle Payment' : 'Pay Now'}
-                          </button>
-                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
-                        </>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-end border-t border-outline-variant/10 pt-3">
+                  <div>
+                    <span className="text-body-md font-bold text-on-surface block">{order.customers?.name || "Unknown"}</span>
+                    <span className="text-body-sm text-on-surface-variant flex items-center gap-1">
+                      {order.customers?.whatsapp_no}
+                    </span>
+                  </div>
+                  <div className="text-right flex items-center gap-2">
+                    <span className="text-title-md font-bold text-on-surface">{formatCurrency(order.total_amount)}</span>
+                    {hasDetails && (
+                      <ChevronDown className={`w-5 h-5 text-on-surface-variant transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Row */}
+              <div className="px-4 pb-4 border-t border-outline-variant/10 pt-3 bg-surface-container-lowest">
+                <OrderActions order={order} />
+              </div>
+
+              {/* Expanded Details */}
+              {isExpanded && hasDetails && (
+                <div className="border-t border-outline-variant/10 bg-surface-container-lowest/50 p-2 animate-in slide-in-from-top-2 fade-in duration-300">
+                   <OrderDetailsView order={order} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ---------------- DESKTOP TABLE VIEW ---------------- */}
+      <div className="hidden lg:block w-full overflow-x-auto rounded-lg border border-outline-variant/20 bg-surface-container-lowest shadow-sm">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-surface-container border-b border-outline-variant/20">
+              <th className="p-4 text-label-md font-bold text-on-surface-variant w-10"></th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant">Faktur & Tanggal</th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant">Pelanggan</th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant">Status</th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant">Pembayaran</th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Total</th>
+              <th className="p-4 text-label-md font-bold text-on-surface-variant text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-outline-variant/10 bg-surface-container-lowest">
+            {paginatedData.map((order) => {
+              const hasDetails = (order.order_items && order.order_items.length > 0) || (order.order_payments && order.order_payments.length > 0);
+              const isExpanded = expandedRows.has(order.id);
+
+              return (
+                <React.Fragment key={order.id}>
+                  <tr className="hover:bg-surface-container-lowest/50 transition-colors group">
+                    <td className="p-4">
+                      {hasDetails && (
+                        <button
+                          onClick={() => toggleRow(order.id)}
+                          className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
+                        >
+                          <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                        </button>
                       )}
-
-                      {/* Laundry Status Actions */}
-                      {order.laundry_status === 'PROCESS' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.WAITING_FOR_PICKUP })}
-                            disabled={updateOrderStatusMutation.isPending}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-label-sm font-medium hover:bg-secondary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50"
-                          >
-                            <PackageCheck className="w-4 h-4" />
-                            Ready
-                          </button>
-                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
-                        </>
-                      )}
-
-                      {order.laundry_status === 'WAITING_FOR_PICKUP' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, laundryStatus: LaundryStatus.COMPLETED })}
-                            disabled={updateOrderStatusMutation.isPending || order.payment_status === 'DP' || order.payment_status === 'UNPAID'}
-                            title={order.payment_status !== 'PAID' ? 'Payment must be settled first' : 'Mark as Complete'}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-label-sm font-medium hover:bg-tertiary/90 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                            Complete
-                          </button>
-                          <div className="w-px h-6 bg-outline-variant/30 mx-1"></div>
-                        </>
-                      )}
-
-                      {/* General Actions */}
-                      <button className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors" title="Print Receipt">
-                        <Printer className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors" title="View Details">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {isExpanded && hasDetails && (
-                  <tr className="bg-surface-container-lowest border-b border-outline-variant/10">
-                    <td colSpan={7} className="p-0">
-                      <div className="px-14 py-4 bg-surface-container-lowest/30 border-l-4 border-primary/40">
-
-                        <div className="grid grid-cols-2 gap-8">
-                          <div>
-                            <h4 className="text-label-md font-bold text-on-surface-variant mb-2">Order Items ({order.order_items?.length})</h4>
-                            <div className="bg-surface-container rounded-lg border border-outline-variant/10 overflow-hidden">
-                              <table className="w-full text-sm text-left">
-                                <thead className="bg-surface-container-high">
-                                  <tr>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium">Service</th>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium text-right">Qty</th>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium text-right">Subtotal</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-outline-variant/10">
-                                  {order.order_items?.map(item => (
-                                    <tr key={item.id} className="bg-surface-container-lowest">
-                                      <td className="px-3 py-2 text-on-surface">{item.services?.name}</td>
-                                      <td className="px-3 py-2 text-on-surface text-right">{item.qty} {item.services?.unit}</td>
-                                      <td className="px-3 py-2 text-on-surface text-right">{formatCurrency(item.qty * item.price_per_unit)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="text-label-md font-bold text-on-surface-variant mb-2">Payment History</h4>
-                            <div className="bg-surface-container rounded-lg border border-outline-variant/10 overflow-hidden">
-                              <table className="w-full text-sm text-left">
-                                <thead className="bg-surface-container-high">
-                                  <tr>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium">Date</th>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium">Method</th>
-                                    <th className="px-3 py-2 text-on-surface-variant font-medium text-right">Amount</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-outline-variant/10">
-                                  {order.order_payments?.map(payment => (
-                                    <tr key={payment.id} className="bg-surface-container-lowest">
-                                      <td className="px-3 py-2 text-on-surface">
-                                        {formatDateTime(payment.created_at)}
-                                      </td>
-                                      <td className="px-3 py-2 text-on-surface">{payment.payment_type}</td>
-                                      <td className="px-3 py-2 text-on-surface text-right">{formatCurrency(payment.amount)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-body-md font-bold text-primary">{order.invoice_no}</span>
+                        <span className="text-body-sm text-on-surface-variant">
+                          {formatDateTime(order.created_at)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-body-md font-bold text-on-surface">{order.customers?.name || "Unknown"}</span>
+                        <span className="text-body-sm text-on-surface-variant">{order.customers?.whatsapp_no}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-md text-label-sm font-bold ${getStatusColor(order.laundry_status)}`}>
+                        {order.laundry_status.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-md text-label-sm font-bold ${getStatusColor(order.payment_status)}`}>
+                        {order.payment_status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-body-md font-bold text-on-surface text-right">
+                      {formatCurrency(order.total_amount)}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end">
+                        <OrderActions order={order} />
                       </div>
                     </td>
                   </tr>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
+                  {isExpanded && hasDetails && (
+                    <tr className="bg-surface-container-lowest/50">
+                      <td colSpan={7} className="p-0 border-b border-outline-variant/10">
+                        <div className="overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300 ease-out">
+                          <div className="mx-4 my-4">
+                             <OrderDetailsView order={order} />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ---------------- PAGINATION ---------------- */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/15 bg-surface-container-low">
-          <div className="text-label-sm text-on-surface-variant">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, orders?.length || 0)} of {orders?.length || 0} entries
+        <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 mt-4 border border-outline-variant/15 rounded-lg bg-surface-container-low gap-3">
+          <div className="text-label-sm text-on-surface-variant text-center sm:text-left">
+            Menampilkan {(currentPage - 1) * itemsPerPage + 1} sampai {Math.min(currentPage * itemsPerPage, orders?.length || 0)} dari {orders?.length || 0} data
           </div>
           <div className="flex items-center gap-1">
             <button

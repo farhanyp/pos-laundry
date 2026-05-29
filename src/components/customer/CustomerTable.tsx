@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Customer } from "@/types/customer";
-import { Loader2, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Phone, MapPin } from "lucide-react";
 import { formatWhatsAppNumber } from "@/lib/utils";
 import { useCustomerStore } from "@/store/useCustomerStore";
 
@@ -30,20 +30,65 @@ export function CustomerTable({ customers, isLoading }: CustomerTableProps) {
   if (!customers || customers.length === 0) {
     return (
       <div className="w-full text-center py-8 text-on-surface-variant font-body-md border border-outline-variant/15 rounded-lg border-dashed">
-        No customers found. Click "Add Customer" to create one.
+        Tidak ada pelanggan ditemukan. Klik "Tambah Pelanggan" untuk membuat yang baru.
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-outline-variant/15 bg-surface-container-low shadow-sm">
-      <table className="w-full text-left border-collapse">
+    <div className="w-full">
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-4 mb-4">
+        {paginatedData.map((customer) => (
+          <div key={customer.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col hover:border-primary/20 transition-all">
+            <div className="p-4 flex flex-col gap-3">
+              <div className="flex justify-between items-start gap-2">
+                <div>
+                  <h4 className="font-bold text-primary text-body-lg">{customer.name}</h4>
+                  <div className="flex items-center gap-2 mt-1.5 text-on-surface-variant text-label-sm">
+                    <Phone className="w-3.5 h-3.5" />
+                    +{formatWhatsAppNumber(customer.whatsapp_no)}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-surface-container-highest/30 p-3 rounded-lg text-label-sm text-on-surface-variant flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-primary/70 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{customer.address || "-"}</span>
+              </div>
+
+              <div className="flex items-center justify-end pt-3 border-t border-outline-variant/10 mt-1">
+                <div className="flex items-center gap-2 w-full">
+                  <button
+                    onClick={() => openModal(customer)}
+                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openDeleteAlert(customer)}
+                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto w-full rounded-lg border border-outline-variant/15 bg-surface-container-low shadow-sm">
+        <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-surface-container-highest/30 border-b border-outline-variant/15">
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Name</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">WhatsApp No</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Address</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Nama</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Nomor WhatsApp</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Alamat</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap text-right">Aksi</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-outline-variant/10">
@@ -79,11 +124,12 @@ export function CustomerTable({ customers, isLoading }: CustomerTableProps) {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/15 bg-surface-container-low">
           <div className="text-label-sm text-on-surface-variant">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, customers?.length || 0)} of {customers?.length || 0} entries
+            Menampilkan {(currentPage - 1) * itemsPerPage + 1} hingga {Math.min(currentPage * itemsPerPage, customers?.length || 0)} dari {customers?.length || 0} entri
           </div>
           <div className="flex items-center gap-1">
             <button 

@@ -7,6 +7,7 @@ import { OrderTable } from "@/components/order/order-table";
 import { OrderDialog } from "@/components/order/order-dialog";
 import { PaymentDialog } from "@/components/order/payment-dialog";
 import { LaundryStatus, PaymentStatus } from "@/types/enums";
+import { Plus, Search, AlertTriangle } from "lucide-react";
 
 export default function OrderPage() {
   const { data: orders, isLoading, error } = useOrders();
@@ -28,9 +29,9 @@ export default function OrderPage() {
     return (
       <div className="p-margin-desktop w-full h-full flex flex-col items-center justify-center space-y-4">
         <div className="w-16 h-16 bg-error-container/20 text-error rounded-full flex items-center justify-center">
-          <span className="material-symbols-outlined text-[32px]" data-icon="error">error</span>
+          <AlertTriangle className="w-8 h-8" />
         </div>
-        <h2 className="font-display text-title-lg font-bold text-on-surface">Failed to load orders</h2>
+        <h2 className="font-display text-title-lg font-bold text-on-surface">Gagal memuat pesanan</h2>
         <p className="text-body-md text-on-surface-variant">{error.message}</p>
       </div>
     );
@@ -38,64 +39,58 @@ export default function OrderPage() {
 
   return (
     <>
-      <header className="flex justify-between items-center px-margin-desktop w-full h-16 bg-background border-b border-outline-variant/15 sticky top-0 z-40 backdrop-blur-md bg-background/80">
-        <div className="flex items-center gap-6">
-          <h1 className="font-display text-headline-md font-bold text-primary">Active Orders</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative group">
-            <span className="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors cursor-pointer" data-icon="notifications">notifications</span>
-          </div>
+      <div className="p-margin-desktop pt-16 md:pt-margin-desktop max-w-[1600px] mx-auto space-y-md">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="font-display text-title-lg md:text-headline-md font-bold text-primary">Pesanan Aktif</h1>
           <button
             onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2 bg-primary text-on-primary font-label-md px-4 py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150"
+            className="flex items-center justify-center gap-2 bg-primary text-on-primary font-label-md p-2 md:px-4 md:py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150 shadow-sm"
           >
-            <span className="material-symbols-outlined text-[18px]" data-icon="add">add</span>
-            New Order
+            <Plus className="w-5 h-5" />
+            <span className="hidden md:inline">Pesanan Baru</span>
           </button>
         </div>
-      </header>
 
-      <div className="p-margin-desktop max-w-[1600px] mx-auto space-y-md">
         <div className="bg-surface-container-low rounded-lg border border-outline-variant/15 p-md flex flex-col">
-          <div className="flex justify-between items-center mb-md">
+          <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center mb-md gap-4">
             <div>
-              <h3 className="font-headline-md text-primary">Order List</h3>
-              <p className="text-on-surface-variant text-label-sm">Manage all active and past transactions</p>
+              <h3 className="font-headline-md text-primary">Daftar Pesanan</h3>
+              <p className="text-on-surface-variant text-label-sm">Kelola semua transaksi aktif dan yang lalu</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full xl:w-auto">
               <select
                 value={filterLaundryStatus}
                 onChange={(e) => setFilterLaundryStatus(e.target.value as LaundryStatus | 'ALL')}
-                className="bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+                className="flex-1 min-w-[150px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
               >
-                <option value="ALL">All Laundry Status</option>
-                <option value="WAITING_PAYMENT">Waiting Payment</option>
-                <option value="PROCESS">Process</option>
-                <option value="WAITING_FOR_PICKUP">Waiting for Pickup</option>
-                <option value="COMPLETED">Completed</option>
+                <option value="ALL">Semua Status Laundry</option>
+                <option value="WAITING_PAYMENT">Menunggu Pembayaran</option>
+                <option value="PROCESS">Proses</option>
+                <option value="WAITING_FOR_PICKUP">Menunggu Pengambilan</option>
+                <option value="COMPLETED">Selesai</option>
               </select>
 
               <select
                 value={filterPaymentStatus}
                 onChange={(e) => setFilterPaymentStatus(e.target.value as PaymentStatus | 'ALL')}
-                className="bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+                className="flex-1 min-w-[150px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
               >
-                <option value="ALL">All Payment Status</option>
-                <option value="INITATE">Initate</option>
-                <option value="UNPAID">Unpaid</option>
+                <option value="ALL">Semua Status Pembayaran</option>
+                <option value="INITATE">Inisiasi</option>
+                <option value="UNPAID">Belum Bayar</option>
                 <option value="DP">DP</option>
-                <option value="PAID">Paid</option>
+                <option value="PAID">Lunas</option>
               </select>
 
-              <div className="flex gap-2 bg-surface-container-highest rounded-lg p-1 border border-outline-variant/20 focus-within:border-primary items-center">
-                <span className="material-symbols-outlined text-on-surface-variant p-1" data-icon="search">search</span>
+              <div className="flex-1 min-w-[200px] flex gap-2 bg-surface-container-highest rounded-lg p-1 px-2 border border-outline-variant/20 focus-within:border-primary items-center">
+                <Search className="w-4 h-4 text-on-surface-variant" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search orders..."
-                  className="bg-transparent border-none outline-none text-body-sm text-on-surface w-48"
+                  placeholder="Cari pesanan..."
+                  className="bg-transparent border-none outline-none text-body-sm text-on-surface w-full"
                 />
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTaxStore } from "@/store/useTaxStore";
 import { useCreateTax, useUpdateTax } from "@/hooks/useTax";
 import { CreateTaxInput } from "@/types/tax";
+import { X, Receipt, Tag, Percent, Calculator, Loader2 } from "lucide-react";
 
 export function TaxModal() {
   const { isModalOpen, closeModal, selectedTax } = useTaxStore();
@@ -94,16 +95,16 @@ export function TaxModal() {
       onClick={closeModal}
     >
       <div 
-        className="bg-surface-container-lowest shadow-2xl w-full max-w-[480px] h-full flex flex-col relative animate-in slide-in-from-right duration-300 border-l border-outline-variant/20"
+        className="bg-surface-container-lowest shadow-2xl w-full sm:max-w-[480px] h-[100dvh] flex flex-col relative animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 sm:border-l border-outline-variant/20"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center px-8 py-6 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+        <div className="flex justify-between items-center px-6 sm:px-8 py-6 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
           <div className="flex flex-col gap-1">
             <h2 className="font-display text-[24px] font-bold text-primary leading-tight">
-              {isEditing ? "Edit Tax" : "New Tax"}
+              {isEditing ? "Edit Pajak" : "Pajak Baru"}
             </h2>
             <p className="text-on-surface-variant text-[14px]">
-              {isEditing ? "Update details for the selected tax" : "Add a new tax to the system"}
+              {isEditing ? "Perbarui detail untuk pajak yang dipilih" : "Tambahkan pajak baru ke sistem"}
             </p>
           </div>
           <button
@@ -111,27 +112,27 @@ export function TaxModal() {
             className="text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors p-2 rounded-full flex items-center justify-center shrink-0 -mr-2"
             disabled={isPending}
             type="button"
-            title="Close panel"
+            title="Tutup panel"
           >
-            <span className="material-symbols-outlined text-[24px]" data-icon="close">close</span>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="px-8 py-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-surface-container-lowest">
+          <div className="px-6 sm:px-8 py-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-surface-container-lowest">
             
             <div className="space-y-5">
               <div className="flex items-center gap-2 border-b border-outline-variant/10 pb-2">
-                <span className="material-symbols-outlined text-primary text-[20px]" data-icon="receipt_long">receipt_long</span>
-                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Tax Details</h3>
+                <Receipt className="w-5 h-5 text-primary" />
+                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Detail Pajak</h3>
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="tax_name" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                  Tax Name <span className="text-error">*</span>
+                  Nama Pajak <span className="text-error">*</span>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">badge</span>
+                  <Tag className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
                   <input
                     id="tax_name"
                     name="tax_name"
@@ -140,18 +141,18 @@ export function TaxModal() {
                     value={formData.tax_name}
                     onChange={handleChange}
                     className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="e.g. VAT"
+                    placeholder="Contoh: PPN"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="rate_percentage" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    Rate (%) <span className="text-error">*</span>
+                    Tarif (%) <span className="text-error">*</span>
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">percent</span>
+                    <Percent className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
                     <input
                       id="rate_percentage"
                       name="rate_percentage"
@@ -160,17 +161,17 @@ export function TaxModal() {
                       value={percentageStr}
                       onChange={handlePercentageChange}
                       className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
-                      placeholder="e.g. 10.00"
+                      placeholder="Contoh: 11.00"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="rate_decimal" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    Rate (Decimal) <span className="text-error">*</span>
+                    Tarif (Desimal) <span className="text-error">*</span>
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">calculate</span>
+                    <Calculator className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
                     <input
                       id="rate_decimal"
                       name="rate_decimal"
@@ -179,7 +180,7 @@ export function TaxModal() {
                       value={decimalStr}
                       onChange={handleDecimalChange}
                       className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
-                      placeholder="e.g. 0.10"
+                      placeholder="Contoh: 0.11"
                     />
                   </div>
                 </div>
@@ -198,34 +199,30 @@ export function TaxModal() {
                     />
                     <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
-                  <span className="text-[15px] font-medium text-on-surface cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}>Active Status</span>
+                  <span className="text-[15px] font-medium text-on-surface cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}>Status Aktif</span>
                 </div>
-                <p className="text-[13px] text-on-surface-variant mt-1">If disabled, this tax rate will not be applied to new transactions.</p>
+                <p className="text-[13px] text-on-surface-variant mt-1">Jika dinonaktifkan, tarif pajak ini tidak akan diterapkan pada transaksi baru.</p>
               </div>
 
             </div>
           </div>
 
-          <div className="px-8 py-5 border-t border-outline-variant/10 bg-surface-container-low shrink-0 flex justify-end gap-3">
+          <div className="px-6 sm:px-8 py-5 border-t border-outline-variant/10 bg-surface-container-low shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-3">
             <button
               type="button"
               onClick={closeModal}
               disabled={isPending}
-              className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-on-surface-variant hover:bg-surface-variant/20 hover:text-on-surface transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[14px] font-bold text-on-surface-variant hover:bg-surface-variant/20 hover:text-on-surface transition-colors disabled:opacity-50"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex items-center gap-2 px-8 py-2.5 rounded-xl text-[14px] font-bold bg-primary text-on-primary hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-primary/20 hover:shadow-primary/40"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl text-[14px] font-bold bg-primary text-on-primary hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-primary/20 hover:shadow-primary/40"
             >
-              {isPending && (
-                <span className="material-symbols-outlined text-[18px] animate-spin" data-icon="progress_activity">
-                  progress_activity
-                </span>
-              )}
-              {isEditing ? "Save Changes" : "Create Tax"}
+              {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isEditing ? "Simpan Perubahan" : "Tambah Pajak"}
             </button>
           </div>
         </form>

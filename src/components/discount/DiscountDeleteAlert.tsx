@@ -2,6 +2,7 @@
 
 import { useDiscountStore } from "@/store/useDiscountStore";
 import { useDeleteDiscount } from "@/hooks/useDiscount";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 export function DiscountDeleteAlert() {
   const { isDeleteAlertOpen, closeDeleteAlert, selectedDiscount } = useDiscountStore();
@@ -30,29 +31,29 @@ export function DiscountDeleteAlert() {
       >
         <div className="p-8 text-center space-y-4">
           <div className="w-16 h-16 bg-error-container/20 text-error rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-error/10">
-            <span className="material-symbols-outlined text-[32px]" data-icon="warning">warning</span>
+            <AlertTriangle className="w-8 h-8" />
           </div>
-          <h2 className="font-display text-[22px] font-bold text-on-surface leading-tight">Delete Discount?</h2>
+          <h2 className="font-display text-[22px] font-bold text-on-surface leading-tight">Hapus Diskon?</h2>
           <p className="text-[14px] text-on-surface-variant leading-relaxed">
-            Are you sure you want to delete <span className="font-bold text-primary">{selectedDiscount.promo_name}</span>? This action is permanent and cannot be undone.
+            Apakah Anda yakin ingin menghapus <span className="font-bold text-primary">{selectedDiscount.promo_name}</span>? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.
           </p>
         </div>
         
-        <div className="p-6 pt-0 flex justify-center gap-3">
+        <div className="p-6 pt-0 flex flex-col-reverse sm:flex-row justify-center gap-3">
           <button
             onClick={closeDeleteAlert}
             disabled={isPending}
-            className="flex-1 px-4 py-2.5 rounded-xl text-[14px] font-bold border border-outline-variant/30 text-on-surface hover:bg-surface-variant/20 transition-colors disabled:opacity-50"
+            className="w-full sm:flex-1 px-4 py-2.5 rounded-xl text-[14px] font-bold border border-outline-variant/30 text-on-surface hover:bg-surface-variant/20 transition-colors disabled:opacity-50"
           >
-            Cancel
+            Batal
           </button>
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-bold bg-error text-on-error hover:bg-error/90 transition-all disabled:opacity-50 active:scale-95 shadow-md shadow-error/20"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-bold bg-error text-on-error hover:bg-error/90 transition-all disabled:opacity-50 active:scale-95 shadow-md shadow-error/20"
           >
-            {isPending && <span className="material-symbols-outlined text-[18px] animate-spin" data-icon="progress_activity">progress_activity</span>}
-            {isPending ? "Deleting..." : "Yes, Delete"}
+            {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+            {isPending ? "Menghapus..." : "Ya, Hapus"}
           </button>
         </div>
       </div>

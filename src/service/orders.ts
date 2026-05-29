@@ -219,8 +219,9 @@ export const processOrderPayment = async (payload: {
   if (paymentError) throw new Error(`Payment Error: ${paymentError.message}`);
 
   // Fetch existing order to calculate cumulative paid amount if SETTLE
-  const { data: currentOrder } = await supabase.from('orders').select('paid_amount').eq('id', payload.orderId).single();
+  const { data: currentOrder } = await supabase.from('orders').select('paid_amount, laundry_status').eq('id', payload.orderId).single();
   const currentPaid = currentOrder?.paid_amount || 0;
+  const currentLaundryStatus = currentOrder?.laundry_status;
 
   let newPaidAmount = isCash ? (currentPaid + payload.expectedAmount) : currentPaid;
   let newRemaining = Math.max(0, payload.totalAmount - newPaidAmount);
@@ -232,11 +233,15 @@ export const processOrderPayment = async (payload: {
   if (isCash) {
     if (payload.paymentMode === 'DP') {
       newPaymentStatus = PaymentStatus.DP;
-      newLaundryStatus = LaundryStatus.PROCESS;
+      if (currentLaundryStatus === LaundryStatus.WAITING_PAYMENT) {
+        newLaundryStatus = LaundryStatus.PROCESS;
+      }
     } else {
       // FULL or SETTLE
       newPaymentStatus = PaymentStatus.PAID;
-      newLaundryStatus = LaundryStatus.PROCESS;
+      if (currentLaundryStatus === LaundryStatus.WAITING_PAYMENT) {
+        newLaundryStatus = LaundryStatus.PROCESS;
+      }
     }
   }
 

@@ -30,21 +30,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    let paymentStatus: PaymentStatus | null = null;
-    let laundryStatus: LaundryStatus | null = null;
+    let isSuccess = false;
 
     if (transaction_status == 'capture') {
       if (fraud_status == 'accept') {
-        paymentStatus = PaymentStatus.PAID;
-        laundryStatus = LaundryStatus.PROCESS;
+        isSuccess = true;
       }
     } else if (transaction_status == 'settlement') {
-      paymentStatus = PaymentStatus.PAID;
-      laundryStatus = LaundryStatus.PROCESS;
-    } else if (transaction_status == 'cancel' || transaction_status == 'deny' || transaction_status == 'expire') {
-      // paymentStatus = PaymentStatus.FAILED; // Jika Anda punya status gagal
-    } else if (transaction_status == 'pending') {
-      // paymentStatus = PaymentStatus.UNPAID;
+      isSuccess = true;
     }
 
     // Ekstrak invoice_no dari order_id midtrans
@@ -54,7 +47,7 @@ export async function POST(req: Request) {
     // Dapatkan internal order_id terlebih dahulu
     const { data: orderData, error: fetchError } = await supabase
       .from('orders')
-      .select('id')
+      .select('id, total_amount, paid_amount, laundry_status')
       .eq('invoice_no', invoiceNo)
       .single();
 
@@ -63,24 +56,55 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Selalu update midtrans_status di order_payments (apapun statusnya: pending, settlement, expire, dll)
-    await supabase
+    // Cari payment yang sesuai untuk mencegah double update
+    const { data: payments } = await supabase
       .from('order_payments')
-      .update({
-        midtrans_status: transaction_status
-      })
+      .select('*')
       .eq('order_id', orderData.id)
-      .eq('payment_type', 'NON_TUNAI');
+      .eq('payment_type', 'NON_TUNAI')
+      .eq('amount', parseFloat(gross_amount))
+      .order('created_at', { ascending: false });
+
+    const targetPayment = payments && payments.length > 0 ? payments[0] : null;
+
+    if (targetPayment) {
+      if (targetPayment.midtrans_status === 'settlement' || targetPayment.midtrans_status === 'capture') {
+        // Sudah diproses sebelumnya, abaikan untuk mencegah double hit
+        return NextResponse.json({ status: 'OK', message: 'Already processed' });
+      }
+      
+      // Update status di order_payments ini saja
+      await supabase
+        .from('order_payments')
+        .update({ midtrans_status: transaction_status })
+        .eq('id', targetPayment.id);
+    } else {
+      // Fallback jika tidak menemukan payment yang pas
+      await supabase
+        .from('order_payments')
+        .update({ midtrans_status: transaction_status })
+        .eq('order_id', orderData.id)
+        .eq('payment_type', 'NON_TUNAI')
+        .eq('amount', parseFloat(gross_amount));
+    }
 
     // Jika pembayarannya lunas (berhasil), barulah update tabel orders utama
-    if (paymentStatus === PaymentStatus.PAID && laundryStatus === LaundryStatus.PROCESS) {
+    if (isSuccess) {
+      const newPaidAmount = (orderData.paid_amount || 0) + parseFloat(gross_amount);
+      const newRemaining = Math.max(0, orderData.total_amount - newPaidAmount);
+      
+      const newPaymentStatus = newRemaining > 0 ? PaymentStatus.DP : PaymentStatus.PAID;
+      const newLaundryStatus = orderData.laundry_status === LaundryStatus.WAITING_PAYMENT 
+          ? LaundryStatus.PROCESS 
+          : orderData.laundry_status;
+
       const { error } = await supabase
         .from('orders')
         .update({
-          payment_status: paymentStatus,
-          laundry_status: laundryStatus,
-          paid_amount: parseFloat(gross_amount),
-          remaining_amount: 0
+          payment_status: newPaymentStatus,
+          laundry_status: newLaundryStatus,
+          paid_amount: newPaidAmount,
+          remaining_amount: newRemaining
         })
         .eq('id', orderData.id);
 

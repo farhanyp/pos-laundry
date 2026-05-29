@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useOrderStore } from "@/store/use-order-store";
 import { useCreateDPMutation, useProcessOrderPayment, useSettlePaymentMutation } from "@/hooks/useOrders";
 import { formatCurrency, calculateDPAmount, calculateChange } from "@/lib/utils";
+import { X, Banknote, QrCode, Receipt, CheckCircle, MessageCircle, ExternalLink, Check, Copy, Loader2 } from "lucide-react";
 
 export function PaymentDialog() {
   const {
@@ -27,11 +28,11 @@ export function PaymentDialog() {
   if (!isPaymentOpen || !activeOrder) return null;
 
   const isAlreadyDP = activeOrder.payment_status === 'DP';
-  
+
   // Calculations
   const totalBill = activeOrder.total_amount;
   const dpAmount = calculateDPAmount(totalBill);
-  
+
   let expectedAmount = totalBill;
   if (isAlreadyDP) {
     expectedAmount = activeOrder.remaining_amount;
@@ -117,20 +118,20 @@ export function PaymentDialog() {
       <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl w-full max-w-2xl flex flex-col shadow-xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container">
-          <h2 className="text-title-lg font-display font-bold text-on-surface">Process Payment</h2>
+        <div className="px-4 md:px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container">
+          <h2 className="text-title-lg font-display font-bold text-on-surface">Proses Pembayaran</h2>
           <button onClick={closePaymentDialog} className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant transition-colors">
-            <span className="material-symbols-outlined" data-icon="close">close</span>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto max-h-[80vh]">
+        <div className="p-4 md:p-6 overflow-y-auto max-h-[80vh]">
           {!midtransUrl ? (
             <div className="space-y-8 animate-in fade-in duration-300">
               <div className="text-center">
                 <h3 className="text-title-lg font-bold text-primary mb-2">
-                  {isAlreadyDP ? 'Pelunasan Sisa Tagihan' : 'Payment Configuration'}
+                  {isAlreadyDP ? 'Pelunasan Sisa Tagihan' : 'Konfigurasi Pembayaran'}
                 </h3>
                 <p className="text-body-md text-on-surface-variant">
                   {isAlreadyDP ? 'Selesaikan sisa pembayaran untuk pengambilan laundry' : 'Pilih metode pembayaran untuk transaksi ini'}
@@ -146,7 +147,11 @@ export function PaymentDialog() {
                     Bayar Lunas
                   </button>
                   <button
-                    onClick={() => { setPaymentMode('DP'); setAmountPaid(0); }}
+                    onClick={() => {
+                      setPaymentMode('DP');
+                      setAmountPaid(0);
+                      setPaymentMethod('CASH'); // Force CASH for DP
+                    }}
                     className={`flex-1 py-2 text-label-md font-bold rounded-lg transition-colors ${paymentMode === 'DP' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
                   >
                     Bayar DP (50%)
@@ -154,13 +159,13 @@ export function PaymentDialog() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${paymentMode === 'DP' && !isAlreadyDP ? 'grid-cols-1 mx-auto' : 'sm:grid-cols-2'}`}>
                 <button
                   onClick={() => setPaymentMethod('CASH')}
                   className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${paymentMethod === 'CASH' ? 'border-primary bg-primary/5 text-primary shadow-sm scale-[1.02]' : 'border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:border-outline-variant/50'}`}
                 >
                   <div className={`p-4 rounded-full transition-colors ${paymentMethod === 'CASH' ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
-                    <span className="material-symbols-outlined text-4xl" data-icon="payments">payments</span>
+                    <Banknote className="w-10 h-10" />
                   </div>
                   <div className="text-center">
                     <span className="font-bold text-title-md block mb-1">CASH</span>
@@ -168,25 +173,27 @@ export function PaymentDialog() {
                   </div>
                 </button>
 
-                <button
-                  onClick={() => setPaymentMethod('NON_TUNAI')}
-                  className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${paymentMethod === 'NON_TUNAI' ? 'border-primary bg-primary/5 text-primary shadow-sm scale-[1.02]' : 'border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:border-outline-variant/50'}`}
-                >
-                  <div className={`p-4 rounded-full transition-colors ${paymentMethod === 'NON_TUNAI' ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
-                    <span className="material-symbols-outlined text-4xl" data-icon="qr_code_scanner">qr_code_scanner</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-title-md block mb-1">NON-CASH</span>
-                    <span className="text-label-sm opacity-80 font-normal">QRIS / Transfer</span>
-                  </div>
-                </button>
+                {!(paymentMode === 'DP' && !isAlreadyDP) && (
+                  <button
+                    onClick={() => setPaymentMethod('NON_TUNAI')}
+                    className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${paymentMethod === 'NON_TUNAI' ? 'border-primary bg-primary/5 text-primary shadow-sm scale-[1.02]' : 'border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:border-outline-variant/50'}`}
+                  >
+                    <div className={`p-4 rounded-full transition-colors ${paymentMethod === 'NON_TUNAI' ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
+                      <QrCode className="w-10 h-10" />
+                    </div>
+                    <div className="text-center">
+                      <span className="font-bold text-title-md block mb-1">QRIS / E-Wallet</span>
+                      <span className="text-label-sm opacity-80 font-normal">Bayar Non-Tunai</span>
+                    </div>
+                  </button>
+                )}
               </div>
 
               {/* Dynamic Payment Details Section */}
               <div className="mt-8 transition-all duration-300">
                 {paymentMethod === 'CASH' && (
                   <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 fade-in">
-                    
+
                     {isAlreadyDP ? (
                       <div className="space-y-3 border-b border-outline-variant/20 pb-4">
                         <div className="flex justify-between items-center text-on-surface-variant">
@@ -206,7 +213,7 @@ export function PaymentDialog() {
                       <div className="flex justify-between items-end border-b border-outline-variant/20 pb-4">
                         <div>
                           <span className="text-on-surface-variant text-label-md block mb-1">
-                            {paymentMode === 'DP' ? 'Down Payment (50%)' : 'Total Bill'}
+                            {paymentMode === 'DP' ? 'Uang Muka (50%)' : 'Total Tagihan'}
                           </span>
                           <span className="text-title-lg font-bold text-primary">{formatCurrency(expectedAmount)}</span>
                         </div>
@@ -220,7 +227,7 @@ export function PaymentDialog() {
                     )}
 
                     <div>
-                      <label className="text-label-md font-bold text-on-surface mb-2 block">Cash Received</label>
+                      <label className="text-label-md font-bold text-on-surface mb-2 block">Uang Diterima</label>
                       <div className="relative flex items-center">
                         <span className="absolute left-4 font-bold text-on-surface-variant text-lg">Rp</span>
                         <input
@@ -237,7 +244,7 @@ export function PaymentDialog() {
                       </div>
                     </div>
 
-                      <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 flex justify-between items-center mt-2">
+                    <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 flex justify-between items-center mt-2">
                       <span className="text-on-surface-variant font-bold text-label-md">Kembalian:</span>
                       <span className={`text-title-md font-bold ${amountPaid >= expectedAmount ? 'text-secondary' : 'text-error'}`}>
                         {formatCurrency(changeReturn)}
@@ -253,7 +260,7 @@ export function PaymentDialog() {
                     {/* <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div> */}
 
                     <div className="relative z-10 w-20 h-20 bg-gradient-to-tr from-tertiary to-primary rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-tertiary/20 rotate-3 transition-transform hover:rotate-0 duration-300">
-                      <span className="material-symbols-outlined text-[40px] text-white" data-icon="qr_code_scanner">qr_code_scanner</span>
+                      <QrCode className="w-10 h-10 text-white" />
                       <div className="absolute -top-2 -right-2 flex h-4 w-4">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-4 w-4 bg-secondary"></span>
@@ -268,7 +275,7 @@ export function PaymentDialog() {
                     <div className="relative z-10 w-full min-w-[280px] max-w-[320px] mx-auto bg-surface-container-lowest/80 backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 shadow-sm group hover:border-tertiary/50 transition-colors duration-300">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-label-md font-medium text-on-surface-variant flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm" data-icon="receipt_long">receipt_long</span>
+                          <Receipt className="w-4 h-4" />
                           Total Tagihan
                         </span>
                         <span className="text-[10px] font-bold px-2 py-1 bg-tertiary/10 text-tertiary rounded-full uppercase tracking-wider">Aman</span>
@@ -286,7 +293,7 @@ export function PaymentDialog() {
               <div className="relative mb-8 group">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/30 transition-colors duration-500 animate-pulse"></div>
                 <div className="relative w-28 h-28 bg-gradient-to-tr from-primary to-tertiary rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary/30 rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
-                  <span className="material-symbols-outlined text-[56px] text-white" data-icon="qr_code_scanner">qr_code_scanner</span>
+                  <QrCode className="w-14 h-14 text-white" />
                   <div className="absolute -top-3 -right-3 flex h-6 w-6">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-6 w-6 bg-secondary border-2 border-surface"></span>
@@ -304,14 +311,14 @@ export function PaymentDialog() {
                   onClick={handleSimulatePaymentSuccess}
                   className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary font-bold px-6 py-4 rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <span className="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                  <CheckCircle className="w-5 h-5" />
                   Saya Sudah Bayar
                 </button>
                 <button
                   onClick={handleSendWhatsApp}
                   className="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold px-6 py-4 rounded-full shadow-lg shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1 transition-all duration-300 group"
                 >
-                  <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="chat">chat</span>
+                  <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   Kirim via WhatsApp
                 </button>
                 <a
@@ -320,16 +327,16 @@ export function PaymentDialog() {
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:shadow-tertiary/40 hover:-translate-y-1 transition-all duration-300 group"
                 >
-                  <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="open_in_new">open_in_new</span>
+                  <ExternalLink className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   Buka Link Pembayaran Lagi
                 </a>
                 <button
                   onClick={handleCopyLink}
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-medium text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all duration-300"
                 >
-                  <span className="material-symbols-outlined text-sm" data-icon={isCopied ? "check" : "content_copy"}>
-                    {isCopied ? "check" : "content_copy"}
-                  </span>
+                  <div className="flex items-center justify-center">
+                    {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </div>
                   {isCopied ? "Tersalin!" : "Salin Link Pembayaran"}
                 </button>
               </div>
@@ -339,18 +346,18 @@ export function PaymentDialog() {
 
         {/* Footer actions */}
         {!midtransUrl && (
-          <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-end">
+          <div className="px-4 md:px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-end">
             <button
               onClick={handleProcessPayment}
               disabled={!isValidCash || processFullPaymentMutation.isPending || processDPMutation.isPending || processSettleMutation.isPending}
-              className="px-8 py-2 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="w-full md:w-auto justify-center px-4 md:px-8 py-2 md:py-3 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {(processFullPaymentMutation.isPending || processDPMutation.isPending || processSettleMutation.isPending) ? (
-                <span className="material-symbols-outlined animate-spin text-sm" data-icon="progress_activity">progress_activity</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-sm" data-icon="task_alt">task_alt</span>
+                <CheckCircle className="w-4 h-4" />
               )}
-              {paymentMethod === 'CASH' ? 'Process Payment & Print Receipt' : 'Generate Payment Link'}
+              {paymentMethod === 'CASH' ? 'Proses Pembayaran & Cetak Struk' : 'Buat Link Pembayaran'}
             </button>
           </div>
         )}

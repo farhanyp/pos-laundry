@@ -30,21 +30,78 @@ export function FeeTable({ fees, isLoading }: FeeTableProps) {
   if (!fees || fees.length === 0) {
     return (
       <div className="w-full text-center py-8 text-on-surface-variant font-body-md border border-outline-variant/15 rounded-lg border-dashed">
-        No fees found. Click "Add Fee" to create one.
+        Tidak ada biaya ditemukan. Klik "Tambah Biaya" untuk membuat baru.
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-outline-variant/15 bg-surface-container-low shadow-sm">
-      <table className="w-full text-left border-collapse">
+    <div className="w-full">
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-4 mb-4">
+        {paginatedData.map((fee) => (
+          <div key={fee.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col hover:border-primary/20 transition-all">
+            <div className="p-4 flex flex-col gap-3">
+              <div className="flex justify-between items-start gap-2">
+                <div>
+                  <h4 className="font-bold text-primary text-body-lg">{fee.fee_name}</h4>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-bold rounded uppercase tracking-wider">
+                      {fee.fee_type === 'fixed' ? 'Tetap' : 'Persentase'}
+                    </span>
+                    {fee.is_active ? (
+                      <span className="flex items-center gap-1 text-[12px] text-primary font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+                        Aktif
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[12px] text-error font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-error inline-block"></span>
+                        Tidak Aktif
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-bold text-on-surface text-title-sm">
+                    {fee.fee_type === 'percentage' ? `${fee.value}%` : formatCurrency(fee.value)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end pt-3 border-t border-outline-variant/10 mt-1">
+                <div className="flex items-center gap-2 w-full">
+                  <button
+                    onClick={() => openModal(fee)}
+                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary/20 transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openAlert(fee)}
+                    className="flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 bg-error/10 text-error rounded-lg text-label-sm font-bold hover:bg-error/20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto w-full rounded-lg border border-outline-variant/15 bg-surface-container-low shadow-sm">
+        <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-surface-container-highest/30 border-b border-outline-variant/15">
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Name</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Type</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Value</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Nama</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Tipe</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Nilai</th>
             <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap">Status</th>
-            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap text-right">Actions</th>
+            <th className="px-4 py-3 font-label-md text-on-surface-variant whitespace-nowrap text-right">Aksi</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-outline-variant/10">
@@ -55,7 +112,7 @@ export function FeeTable({ fees, isLoading }: FeeTableProps) {
               </td>
               <td className="px-4 py-3 font-body-md text-on-surface-variant">
                 <span className="px-2 py-1 bg-secondary-container/30 text-on-secondary-container text-[11px] font-medium rounded uppercase tracking-wider">
-                  {fee.fee_type}
+                  {fee.fee_type === 'fixed' ? 'Tetap' : 'Persentase'}
                 </span>
               </td>
               <td className="px-4 py-3 font-body-md text-on-surface">
@@ -65,12 +122,12 @@ export function FeeTable({ fees, isLoading }: FeeTableProps) {
                 {fee.is_active ? (
                   <span className="flex items-center gap-1 text-[12px] text-primary">
                     <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
-                    Active
+                    Aktif
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-[12px] text-error">
                     <span className="w-2 h-2 rounded-full bg-error inline-block"></span>
-                    Inactive
+                    Tidak Aktif
                   </span>
                 )}
               </td>
@@ -95,11 +152,12 @@ export function FeeTable({ fees, isLoading }: FeeTableProps) {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/15 bg-surface-container-low">
           <div className="text-label-sm text-on-surface-variant">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, fees?.length || 0)} of {fees?.length || 0} entries
+            Menampilkan {(currentPage - 1) * itemsPerPage + 1} sampai {Math.min(currentPage * itemsPerPage, fees?.length || 0)} dari {fees?.length || 0} data
           </div>
           <div className="flex items-center gap-1">
             <button 

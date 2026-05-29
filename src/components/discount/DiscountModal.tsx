@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDiscountStore } from "@/store/useDiscountStore";
 import { useCreateDiscount, useUpdateDiscount } from "@/hooks/useDiscount";
 import { CreateDiscountInput } from "@/types/discount";
+import { X, Info, Tag, ChevronDown, CircleDollarSign, Calendar, Loader2 } from "lucide-react";
 
 export function DiscountModal() {
   const { isModalOpen, closeModal, selectedDiscount } = useDiscountStore();
@@ -106,17 +107,17 @@ export function DiscountModal() {
       onClick={closeModal}
     >
       <div 
-        className="bg-surface-container-lowest shadow-2xl w-full max-w-[480px] h-full flex flex-col relative animate-in slide-in-from-right duration-300 border-l border-outline-variant/20"
+        className="bg-surface-container-lowest shadow-2xl w-full sm:max-w-[480px] h-[100dvh] flex flex-col relative animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 sm:border-l border-outline-variant/20"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-8 py-6 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+        <div className="flex justify-between items-center px-6 sm:px-8 py-6 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
           <div className="flex flex-col gap-1">
             <h2 className="font-display text-[24px] font-bold text-primary leading-tight">
-              {isEditing ? "Edit Discount" : "New Discount"}
+              {isEditing ? "Edit Diskon" : "Diskon Baru"}
             </h2>
             <p className="text-on-surface-variant text-[14px]">
-              {isEditing ? "Update promotional discount details" : "Create a new discount campaign"}
+              {isEditing ? "Perbarui detail diskon promosi" : "Buat kampanye diskon baru"}
             </p>
           </div>
           <button
@@ -126,27 +127,27 @@ export function DiscountModal() {
             type="button"
             title="Close panel"
           >
-            <span className="material-symbols-outlined text-[24px]" data-icon="close">close</span>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="px-8 py-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-surface-container-lowest">
+          <div className="px-6 sm:px-8 py-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-surface-container-lowest">
             
             {/* General Info */}
             <div className="space-y-5">
               <div className="flex items-center gap-2 border-b border-outline-variant/10 pb-2">
-                <span className="material-symbols-outlined text-primary text-[20px]" data-icon="info">info</span>
-                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Campaign Info</h3>
+                <Info className="w-5 h-5 text-primary" />
+                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Info Kampanye</h3>
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="promo_name" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                  Promo Name <span className="text-error">*</span>
+                  Nama Promo <span className="text-error">*</span>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">sell</span>
+                  <Tag className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
                   <input
                     id="promo_name"
                     name="promo_name"
@@ -155,14 +156,14 @@ export function DiscountModal() {
                     value={formData.promo_name}
                     onChange={handleChange}
                     className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="e.g. Summer Sale 20% Off"
+                    placeholder="mis. Diskon Lebaran 20%"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="discount_type" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                  Discount Type <span className="text-error">*</span>
+                  Tipe Diskon <span className="text-error">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -173,10 +174,10 @@ export function DiscountModal() {
                     onChange={handleChange}
                     className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-4 pr-10 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none"
                   >
-                    <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount (IDR)</option>
+                    <option value="percentage">Persentase (%)</option>
+                    <option value="fixed">Nominal Tetap (Rp)</option>
                   </select>
-                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">expand_more</span>
+                  <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -184,14 +185,14 @@ export function DiscountModal() {
             {/* Value & Limits */}
             <div className="space-y-5">
               <div className="flex items-center gap-2 border-b border-outline-variant/10 pb-2">
-                <span className="material-symbols-outlined text-primary text-[20px]" data-icon="payments">payments</span>
-                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Value & Rules</h3>
+                <CircleDollarSign className="w-5 h-5 text-primary" />
+                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Nilai & Aturan</h3>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="value" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    Value <span className="text-error">*</span>
+                    Nilai <span className="text-error">*</span>
                   </label>
                   <div className="relative">
                     {formData.discount_type === 'fixed' && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[15px] font-medium">Rp</span>}
@@ -211,7 +212,7 @@ export function DiscountModal() {
 
                 <div className="space-y-2">
                   <label htmlFor="max_discount_amount" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    Max Discount
+                    Maks Diskon
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[15px] font-medium">Rp</span>
@@ -222,7 +223,7 @@ export function DiscountModal() {
                       value={formData.max_discount_amount ? formData.max_discount_amount.toLocaleString("id-ID") : ""}
                       onChange={handleNumberTextChange}
                       className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50 font-medium"
-                      placeholder="No limit"
+                      placeholder="Tanpa batas"
                     />
                   </div>
                 </div>
@@ -230,7 +231,7 @@ export function DiscountModal() {
 
               <div className="space-y-2">
                 <label htmlFor="min_order_amount" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                  Minimum Order Amount <span className="text-error">*</span>
+                  Minimal Transaksi <span className="text-error">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[15px] font-medium">Rp</span>
@@ -251,14 +252,14 @@ export function DiscountModal() {
             {/* Validity Period Section */}
             <div className="space-y-5">
               <div className="flex items-center gap-2 border-b border-outline-variant/10 pb-2">
-                <span className="material-symbols-outlined text-primary text-[20px]" data-icon="event">event</span>
-                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Validity Period</h3>
+                <Calendar className="w-5 h-5 text-primary" />
+                <h3 className="text-[14px] font-bold text-primary uppercase tracking-wider">Masa Berlaku</h3>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="start_date" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    Start Date <span className="text-error">*</span>
+                    Tanggal Mulai <span className="text-error">*</span>
                   </label>
                   <input
                     id="start_date"
@@ -273,7 +274,7 @@ export function DiscountModal() {
 
                 <div className="space-y-2">
                   <label htmlFor="end_date" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
-                    End Date <span className="text-error">*</span>
+                    Tanggal Berakhir <span className="text-error">*</span>
                   </label>
                   <input
                     id="end_date"
@@ -305,10 +306,10 @@ export function DiscountModal() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[15px] font-bold text-on-surface group-hover:text-primary transition-colors">
-                    Campaign Status
+                    Status Kampanye
                   </span>
                   <span className="text-[13px] text-on-surface-variant mt-0.5">
-                    {formData.is_active ? "Active and available for checkout" : "Currently disabled"}
+                    {formData.is_active ? "Aktif dan tersedia untuk pembayaran" : "Saat ini dinonaktifkan"}
                   </span>
                 </div>
               </label>
@@ -316,26 +317,22 @@ export function DiscountModal() {
           </div>
 
           {/* Footer */}
-          <div className="px-8 py-5 border-t border-outline-variant/10 bg-surface-container-low shrink-0 flex justify-end gap-3">
+          <div className="px-6 sm:px-8 py-5 border-t border-outline-variant/10 bg-surface-container-low shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-3">
             <button
               type="button"
               onClick={closeModal}
               disabled={isPending}
-              className="px-6 py-2.5 rounded-xl text-[14px] font-bold text-on-surface-variant hover:bg-surface-variant/20 hover:text-on-surface transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[14px] font-bold text-on-surface-variant hover:bg-surface-variant/20 hover:text-on-surface transition-colors disabled:opacity-50"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex items-center gap-2 px-8 py-2.5 rounded-xl text-[14px] font-bold bg-primary text-on-primary hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-primary/20 hover:shadow-primary/40"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl text-[14px] font-bold bg-primary text-on-primary hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-primary/20 hover:shadow-primary/40"
             >
-              {isPending && (
-                <span className="material-symbols-outlined text-[18px] animate-spin" data-icon="progress_activity">
-                  progress_activity
-                </span>
-              )}
-              {isEditing ? "Save Changes" : "Create Discount"}
+              {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isEditing ? "Simpan Perubahan" : "Buat Diskon"}
             </button>
           </div>
         </form>

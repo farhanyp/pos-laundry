@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { OrderDialog } from '@/components/order/order-dialog'
 
 export default function DashboardLayout({
   children,
@@ -10,9 +11,10 @@ export default function DashboardLayout({
     <AuthGuard>
       <div className="bg-background text-on-surface">
         <Sidebar />
-        <main className="ml-64 min-h-screen">
+        <main className="md:ml-64 min-h-screen">
           {children}
         </main>
+        <OrderDialog />
       </div>
     </AuthGuard>
   )
