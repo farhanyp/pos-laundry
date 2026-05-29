@@ -12,7 +12,7 @@ export default function DashboardPage() {
   const { data: stats, isLoading } = useDashboardStats();
   const [chartView, setChartView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-  const currentChartData = chartView === 'daily' 
+  const currentChartData = chartView === 'daily'
     ? (stats?.chartData?.daily || [])
     : chartView === 'weekly'
       ? (stats?.chartData?.weekly || [])
