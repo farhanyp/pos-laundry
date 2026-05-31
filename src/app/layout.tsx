@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Analytics Hub | FreshPress POS",
+  title: "Mari Laundry",
   description: "Seamless Point of Sale for Modern Care",
 };
 

@@ -15,7 +15,7 @@ import { Service } from "@/types/service";
 import { Discount } from "@/types/discount";
 import { Tax } from "@/types/tax";
 import { Fee } from "@/types/fee";
-import { X, Loader2, WashingMachine, Scale, Shirt, Clock, ShoppingCart, Plus, Minus } from "lucide-react";
+import { X, Loader2, WashingMachine, Scale, Shirt, Clock, ShoppingCart, Plus, Minus, Search } from "lucide-react";
 
 export function OrderDialog() {
   const {
@@ -41,17 +41,24 @@ export function OrderDialog() {
 
   const [isNewCustomerMode, setIsNewCustomerMode] = useState(false);
   const [customerForm, setCustomerForm] = useState({ name: "", whatsapp_no: "", address: "" });
+  const [serviceSearchQuery, setServiceSearchQuery] = useState("");
 
   const handleClose = () => {
     setIsOpen(false);
     resetOrder();
     setIsNewCustomerMode(false);
     setCustomerForm({ name: "", whatsapp_no: "", address: "" });
+    setServiceSearchQuery("");
   };
 
   if (!isOpen) return null;
 
   // Computed Values
+  const filteredServices = services?.filter((s: Service) => 
+    s.name.toLowerCase().includes(serviceSearchQuery.toLowerCase()) || 
+    s.category.toLowerCase().includes(serviceSearchQuery.toLowerCase())
+  );
+
   const baseSubtotal = items.reduce((acc, item) => acc + (item.service.price * item.qty), 0);
 
   let discountAmount = 0;
@@ -256,15 +263,34 @@ export function OrderDialog() {
               {/* Left Column: Services Catalog */}
               <div className="w-full xl:w-[55%] flex flex-col bg-surface-container-lowest rounded-2xl border border-outline-variant/20 overflow-hidden shadow-sm">
                 <div className="p-5 border-b border-outline-variant/10 bg-surface-container/30">
-                  <h3 className="text-title-lg font-bold text-on-surface flex items-center gap-2">
-                    <WashingMachine className="w-6 h-6 text-primary" />
-                    Pilih Layanan
-                  </h3>
-                  <p className="text-body-sm text-on-surface-variant mt-1">Pilih satu atau lebih layanan untuk pelanggan.</p>
+                  <div className="mb-4">
+                    <h3 className="text-title-lg font-bold text-on-surface flex items-center gap-2">
+                      <WashingMachine className="w-6 h-6 text-primary" />
+                      Pilih Layanan
+                    </h3>
+                    <p className="text-body-sm text-on-surface-variant mt-1">Pilih satu atau lebih layanan untuk pelanggan.</p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-surface-container-lowest rounded-lg p-2 px-3 border border-outline-variant/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-sm transition-all">
+                    <Search className="w-4 h-4 text-on-surface-variant" />
+                    <input 
+                      type="text" 
+                      value={serviceSearchQuery}
+                      onChange={(e) => setServiceSearchQuery(e.target.value)}
+                      placeholder="Cari layanan atau kategori..." 
+                      className="bg-transparent border-none outline-none text-body-sm text-on-surface w-full"
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-container-lowest/50">
-                  {services?.map((s: Service) => {
+                  {filteredServices?.length === 0 ? (
+                    <div className="text-center py-8 text-on-surface-variant">
+                      <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="font-bold">Layanan tidak ditemukan</p>
+                      <p className="text-sm">Coba kata kunci pencarian yang lain.</p>
+                    </div>
+                  ) : (
+                    filteredServices?.map((s: Service) => {
                     const isSelected = items.some(i => i.service.id === s.id);
                     return (
                       <div 
@@ -303,7 +329,7 @@ export function OrderDialog() {
                         </div>
                       </div>
                     );
-                  })}
+                  }))}
                 </div>
               </div>
 

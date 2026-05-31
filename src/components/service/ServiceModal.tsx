@@ -26,6 +26,9 @@ export function ServiceModal() {
   const [unitAmount, setUnitAmount] = useState<string>("1");
   const [unitType, setUnitType] = useState<string>("kg");
 
+  const [estimationValue, setEstimationValue] = useState<string>("");
+  const [estimationUnit, setEstimationUnit] = useState<string>("jam");
+
   useEffect(() => {
     if (selectedService) {
       setFormData({
@@ -46,6 +49,14 @@ export function ServiceModal() {
         setUnitAmount("1");
         setUnitType(selectedService.unit || "kg");
       }
+
+      if (selectedService.estimation_hours > 0 && selectedService.estimation_hours % 24 === 0) {
+        setEstimationValue((selectedService.estimation_hours / 24).toString());
+        setEstimationUnit("hari");
+      } else {
+        setEstimationValue((selectedService.estimation_hours || "").toString());
+        setEstimationUnit("jam");
+      }
     } else {
       setFormData({
         name: "",
@@ -57,6 +68,8 @@ export function ServiceModal() {
       });
       setUnitAmount("1");
       setUnitType("kg");
+      setEstimationValue("");
+      setEstimationUnit("jam");
     }
   }, [selectedService, isModalOpen]);
 
@@ -113,6 +126,22 @@ export function ServiceModal() {
     const val = e.target.value;
     setUnitType(val);
     setFormData((prev) => ({ ...prev, unit: `${unitAmount} ${val}`.trim() }));
+  };
+
+  const handleEstimationValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, "");
+    setEstimationValue(val);
+    const numericVal = val ? parseInt(val, 10) : 0;
+    const hours = estimationUnit === "hari" ? numericVal * 24 : numericVal;
+    setFormData((prev) => ({ ...prev, estimation_hours: hours }));
+  };
+
+  const handleEstimationUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setEstimationUnit(val);
+    const numericVal = estimationValue ? parseInt(estimationValue, 10) : 0;
+    const hours = val === "hari" ? numericVal * 24 : numericVal;
+    setFormData((prev) => ({ ...prev, estimation_hours: hours }));
   };
 
   return (
@@ -258,19 +287,30 @@ export function ServiceModal() {
                 <label htmlFor="estimation_hours" className="text-[14px] font-semibold text-on-surface flex items-center gap-1">
                   Est. Waktu Selesai <span className="text-error">*</span>
                 </label>
-                <div className="relative">
-                  <Clock className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
+                <div className="flex relative">
+                  <Clock className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 z-10" />
                   <input
                     id="estimation_hours"
                     name="estimation_hours"
                     type="text"
                     required
-                    value={formData.estimation_hours ? formData.estimation_hours.toLocaleString("id-ID") : ""}
-                    onChange={handleNumberTextChange}
-                    className="w-full bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-xl pl-11 pr-16 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50 font-medium"
+                    value={estimationValue}
+                    onChange={handleEstimationValueChange}
+                    className="w-1/2 bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 border-r-0 text-on-surface rounded-l-xl pl-11 pr-4 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50 font-medium"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[14px] font-medium bg-surface-container-highest px-2 py-1 rounded-md">jam</span>
+                  <select
+                    id="estimationUnit"
+                    name="estimationUnit"
+                    required
+                    value={estimationUnit}
+                    onChange={handleEstimationUnitChange}
+                    className="w-1/2 bg-surface-container-highest/30 hover:bg-surface-container-highest/50 border border-outline-variant/40 text-on-surface rounded-r-xl pl-3 pr-8 py-3.5 text-[15px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none font-medium"
+                  >
+                    <option value="jam">Jam</option>
+                    <option value="hari">Hari</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
                 </div>
               </div>
             </div>
