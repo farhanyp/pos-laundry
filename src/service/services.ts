@@ -6,6 +6,7 @@ export const getServices = async (): Promise<Service[]> => {
   const { data, error } = await supabase
     .from('services')
     .select('*')
+    .eq('is_active', true)
     .order('name');
   
   if (error) {
@@ -45,9 +46,10 @@ export const updateService = async ({ id, payload }: { id: string; payload: Upda
 
 export const deleteService = async (id: string): Promise<void> => {
   const supabase = createClient();
+
   const { error } = await supabase
     .from('services')
-    .delete()
+    .update({ is_active: false })
     .eq('id', id);
 
   if (error) {

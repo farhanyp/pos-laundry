@@ -115,11 +115,11 @@ export function PaymentDialog() {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/40 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={closePaymentDialog}
     >
-      <div 
+      <div
         className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl w-full max-w-2xl flex flex-col shadow-xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
