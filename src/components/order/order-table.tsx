@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { OrderWithDetails } from "@/types/order";
-import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle, ShoppingBag, Shirt, Banknote, QrCode, ChevronDown, Trash } from "lucide-react";
+import { Loader2, Receipt, ChevronRight, ChevronLeft, Printer, Eye, CreditCard, PackageCheck, CheckCircle, ShoppingBag, Shirt, Banknote, QrCode, ChevronDown, Trash, MessageCircle } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { useOrderStore } from "@/store/use-order-store";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -18,7 +18,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const { openPaymentDialog, openDeleteAlert } = useOrderStore();
   const updateOrderStatusMutation = useUpdateOrderStatus();
-  
+
   const currentUser = useAuthStore(state => state.user);
   // STAFF, OWNER, and SUPERADMIN all have delete permissions for orders as per requirements
   const canDelete = true;
@@ -48,6 +48,41 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
     );
   }
 
+  const handleSendWhatsApp = (e: React.MouseEvent, order: OrderWithDetails) => {
+    e.stopPropagation();
+
+    let phone = order.customers?.whatsapp_no;
+
+    if (phone) {
+      phone = phone.replace(/\D/g, '');
+      if (phone.startsWith('0')) {
+        phone = '62' + phone.substring(1);
+      }
+    }
+
+    const customerName = order.customers?.name || "Pelanggan";
+    const customerPhone = order.customers?.whatsapp_no || "-";
+    const trackUrl = `${window.location.origin}/track?invoice=${order.invoice_no}`;
+
+    const nonTunaiPayment = order.order_payments?.find(p => p.payment_type === 'NON_TUNAI' && p.midtrans_payment_url);
+    const midtransUrl = nonTunaiPayment?.midtrans_payment_url;
+
+    let message = "";
+
+    if (midtransUrl && order.payment_status !== 'PAID') {
+      message = `Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`;
+    } else {
+      message = `Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah kami terima.\n\nTotal Tagihan: ${formatCurrency(order.total_amount)}\nSudah Dibayar: ${formatCurrency(order.paid_amount)}\nSisa Tagihan: ${formatCurrency(order.remaining_amount)}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`;
+    }
+
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = phone
+      ? `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`
+      : `https://api.whatsapp.com/send?text=${encodedMessage}`;
+
+    window.open(waUrl, '_blank');
+  };
+
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(id)) {
@@ -75,9 +110,9 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
   const OrderDetailsView = ({ order }: { order: OrderWithDetails }) => (
     <div className="p-4 md:p-6 bg-surface-container-low rounded-xl md:rounded-2xl border border-outline-variant/20 shadow-sm relative">
       <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-primary to-tertiary rounded-l-xl md:rounded-l-2xl"></div>
-      
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 ml-2 md:ml-0">
-        
+
         {/* Order Items List */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
@@ -89,7 +124,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
               {order.order_items?.length} items
             </span>
           </div>
-          
+
           <div className="space-y-3">
             {order.order_items?.map(item => (
               <div key={item.id} className="flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/20 hover:shadow-sm transition-all group">
@@ -240,6 +275,9 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
       )}
 
       {/* General Actions */}
+      <button onClick={(e) => handleSendWhatsApp(e, order)} className="p-1.5 text-[#25D366] hover:bg-[#25D366]/10 rounded-md transition-colors border md:border-none border-[#25D366]/20" title="Kirim WhatsApp">
+        <MessageCircle className="w-4 h-4" />
+      </button>
       <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors border md:border-none border-primary/20" title="Cetak Struk">
         <Printer className="w-4 h-4" />
       </button>
@@ -247,9 +285,9 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
         <Eye className="w-4 h-4" />
       </button>
       {canDelete && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); openDeleteAlert(order); }} 
-          className="p-1.5 text-error hover:bg-error/10 rounded-md transition-colors border md:border-none border-error/20" 
+        <button
+          onClick={(e) => { e.stopPropagation(); openDeleteAlert(order); }}
+          className="p-1.5 text-error hover:bg-error/10 rounded-md transition-colors border md:border-none border-error/20"
           title="Hapus Pesanan"
         >
           <Trash className="w-4 h-4" />
@@ -260,7 +298,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
 
   return (
     <div className="w-full">
-      
+
       {/* ---------------- MOBILE CARD VIEW ---------------- */}
       <div className="lg:hidden flex flex-col gap-4">
         {paginatedData.map((order) => {
@@ -270,7 +308,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
           return (
             <div key={order.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
               {/* Card Header (Clickable for details) */}
-              <div 
+              <div
                 className="p-4 flex flex-col gap-3 cursor-pointer hover:bg-surface-container-lowest/80 transition-colors"
                 onClick={() => hasDetails && toggleRow(order.id)}
               >
@@ -313,7 +351,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
               {/* Expanded Details */}
               {isExpanded && hasDetails && (
                 <div className="border-t border-outline-variant/10 bg-surface-container-lowest/50 p-2 animate-in slide-in-from-top-2 fade-in duration-300">
-                   <OrderDetailsView order={order} />
+                  <OrderDetailsView order={order} />
                 </div>
               )}
             </div>
@@ -391,7 +429,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                       <td colSpan={7} className="p-0 border-b border-outline-variant/10">
                         <div className="overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300 ease-out">
                           <div className="mx-4 my-4">
-                             <OrderDetailsView order={order} />
+                            <OrderDetailsView order={order} />
                           </div>
                         </div>
                       </td>

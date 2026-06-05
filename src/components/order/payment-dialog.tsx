@@ -80,8 +80,6 @@ export function PaymentDialog() {
   };
 
   const handleSendWhatsApp = () => {
-    if (!midtransUrl) return;
-
     let phone = activeOrder.customers?.whatsapp_no || selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no;
 
     if (phone) {
@@ -95,10 +93,19 @@ export function PaymentDialog() {
     const customerPhone = activeOrder.customers?.whatsapp_no || selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
 
     const trackUrl = `${window.location.origin}/track?invoice=${activeOrder.invoice_no}`;
-    const message = encodeURIComponent(`Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`);
+    
+    let message = "";
+
+    if (midtransUrl && activeOrder.payment_status !== 'PAID') {
+      message = `Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah dibuat. Silakan selesaikan pembayaran melalui link berikut yang aman dari Midtrans:\n\n${midtransUrl}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`;
+    } else {
+      message = `Halo Kak ${customerName} (${customerPhone}),\n\nPesanan laundry Anda telah kami terima.\n\nTotal Tagihan: ${formatCurrency(activeOrder.total_amount)}\nSudah Dibayar: ${formatCurrency(activeOrder.paid_amount)}\nSisa Tagihan: ${formatCurrency(activeOrder.remaining_amount)}\n\nLacak status pesanan Anda di sini:\n${trackUrl}\n\nTerima kasih!`;
+    }
+
+    const encodedMessage = encodeURIComponent(message);
     const waUrl = phone
-      ? `https://api.whatsapp.com/send?phone=${phone}&text=${message}`
-      : `https://api.whatsapp.com/send?text=${message}`;
+      ? `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`
+      : `https://api.whatsapp.com/send?text=${encodedMessage}`;
 
     window.open(waUrl, '_blank');
   };
