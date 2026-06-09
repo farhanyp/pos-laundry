@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 <div className="flex justify-between text-body-md">
                   <span className="font-medium text-primary flex items-center gap-2">
                     <CreditCard className="w-[18px] h-[18px]" />
-                    Non-Tunai (QRIS/Transfer)
+                    Non-Tunai (QRIS)
                   </span>
                   <span className="text-on-surface-variant">{isLoading ? "..." : `${stats?.paymentDistribution?.nonTunai.percentage.toFixed(0)}%`}</span>
                 </div>

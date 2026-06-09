@@ -17,13 +17,33 @@ export default function OrderPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLaundryStatus, setFilterLaundryStatus] = useState<LaundryStatus | 'ALL'>('ALL');
   const [filterPaymentStatus, setFilterPaymentStatus] = useState<PaymentStatus | 'ALL'>('ALL');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const filteredOrders = orders?.filter(order => {
     const matchSearch = order.invoice_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (order.customers?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchLaundry = filterLaundryStatus === 'ALL' || order.laundry_status === filterLaundryStatus;
     const matchPayment = filterPaymentStatus === 'ALL' || order.payment_status === filterPaymentStatus;
-    return matchSearch && matchLaundry && matchPayment;
+    
+    let matchDate = true;
+    if (startDate || endDate) {
+      const orderDate = new Date(order.created_at);
+      
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (orderDate < start) matchDate = false;
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (orderDate > end) matchDate = false;
+      }
+    }
+
+    return matchSearch && matchLaundry && matchPayment && matchDate;
   });
 
   if (error) {
@@ -59,11 +79,11 @@ export default function OrderPage() {
               <h3 className="font-headline-md text-primary">Daftar Pesanan</h3>
               <p className="text-on-surface-variant text-label-sm">Kelola semua transaksi aktif dan yang lalu</p>
             </div>
-            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full xl:w-auto">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full xl:w-auto">
               <select
                 value={filterLaundryStatus}
                 onChange={(e) => setFilterLaundryStatus(e.target.value as LaundryStatus | 'ALL')}
-                className="flex-1 min-w-[150px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+                className="w-full sm:w-auto bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary cursor-pointer"
               >
                 <option value="ALL">Semua Status Laundry</option>
                 <option value="WAITING_PAYMENT">Menunggu Pembayaran</option>
@@ -75,7 +95,7 @@ export default function OrderPage() {
               <select
                 value={filterPaymentStatus}
                 onChange={(e) => setFilterPaymentStatus(e.target.value as PaymentStatus | 'ALL')}
-                className="flex-1 min-w-[150px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary"
+                className="w-full sm:w-auto bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary cursor-pointer"
               >
                 <option value="ALL">Semua Status Pembayaran</option>
                 <option value="INITATE">Inisiasi</option>
@@ -84,7 +104,42 @@ export default function OrderPage() {
                 <option value="PAID">Lunas</option>
               </select>
 
-              <div className="flex-1 min-w-[200px] flex gap-2 bg-surface-container-highest rounded-lg p-1 px-2 border border-outline-variant/20 focus-within:border-primary items-center">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:items-center bg-surface-container-low sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none border border-outline-variant/20 sm:border-none">
+                <span className="text-label-sm font-medium text-on-surface-variant sm:hidden mb-1">Periode Tanggal</span>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  <div className="flex flex-col flex-1 sm:flex-none w-full sm:w-auto">
+                    <span className="text-[10px] text-on-surface-variant sm:hidden mb-1 ml-1">Mulai</span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      onClick={(e) => {
+                        try {
+                          e.currentTarget.showPicker();
+                        } catch (err) {}
+                      }}
+                      className="w-full sm:w-[130px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary cursor-pointer"
+                    />
+                  </div>
+                  <span className="hidden sm:block text-on-surface-variant font-medium">-</span>
+                  <div className="flex flex-col flex-1 sm:flex-none w-full sm:w-auto">
+                    <span className="text-[10px] text-on-surface-variant sm:hidden mb-1 ml-1">Sampai</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      onClick={(e) => {
+                        try {
+                          e.currentTarget.showPicker();
+                        } catch (err) {}
+                      }}
+                      className="w-full sm:w-[130px] bg-surface-container-highest rounded-lg p-2 text-body-sm text-on-surface outline-none border border-outline-variant/20 focus:border-primary cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full sm:w-auto flex-1 min-w-[200px] flex gap-2 bg-surface-container-highest rounded-lg p-2 border border-outline-variant/20 focus-within:border-primary items-center">
                 <Search className="w-4 h-4 text-on-surface-variant" />
                 <input
                   type="text"
