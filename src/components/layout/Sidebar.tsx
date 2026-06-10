@@ -113,6 +113,12 @@ export function Sidebar() {
               <span className="font-body-md text-body-md">Pajak</span>
             </Link>
           )}
+          {hasAccess(user?.roles, "/laporan-keuangan") && (
+            <Link className={getLinkClassName("/laporan-keuangan")} href="/laporan-keuangan" onClick={handleLinkClick}>
+              <Wallet className="w-6 h-6" />
+              <span className="font-body-md text-body-md">Laporan Keuangan</span>
+            </Link>
+          )}
           {hasAccess(user?.roles, "/users") && (
             <Link className={getLinkClassName("/users")} href="/users" onClick={handleLinkClick}>
               <UserCog className="w-6 h-6" />

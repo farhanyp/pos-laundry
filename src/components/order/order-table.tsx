@@ -166,7 +166,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                       </div>
                       <div>
                         <p className="text-label-md font-bold text-on-surface leading-tight mb-0.5">
-                          {payment.payment_type === 'TUNAI' ? 'Cash' : 'QRIS / E-Wallet'}
+                          {payment.payment_type === 'TUNAI' ? 'Cash' : 'QRIS'}
                         </p>
                         <p className="text-body-sm text-on-surface-variant">{formatDateTime(payment.created_at)}</p>
                       </div>
@@ -366,7 +366,7 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
             {paginatedData.map((order) => {
               return (
                 <React.Fragment key={order.id}>
-                  <tr 
+                  <tr
                     className="hover:bg-surface-container-lowest/50 transition-colors group cursor-pointer"
                     onClick={() => openDetailModal(order)}
                   >
@@ -465,11 +465,11 @@ export function OrderTable({ orders, isLoading }: OrderTableProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="overflow-y-auto p-4 md:p-6 bg-surface">
               <OrderDetailsView order={selectedOrder} />
             </div>
-            
+
             <div className="px-4 md:px-6 py-4 border-t border-outline-variant/20 bg-surface-container flex justify-end">
               <FullOrderActions order={selectedOrder} />
             </div>

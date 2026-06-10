@@ -48,7 +48,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4">
               <h2 className="font-display text-headline-lg text-primary">{isLoading ? "..." : formatCurrency(stats?.revenue.current || 0)}</h2>
-              <p className="text-on-surface-variant text-[12px] mt-1 italic">30 hari terakhir</p>
+              <p className="text-on-surface-variant text-[12px] mt-1 italic">Total semua waktu</p>
             </div>
           </div>
           {/* Total Orders */}
@@ -97,7 +97,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4">
               <h2 className="font-display text-headline-lg text-error">{isLoading ? "..." : formatCurrency(stats?.unpaidAmount || 0)}</h2>
-              <p className="text-on-surface-variant text-[12px] mt-1 italic">Hanya pesanan berstatus DP</p>
+              <p className="text-on-surface-variant text-[12px] mt-1 italic">Sisa tagihan semua pesanan</p>
             </div>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
           <div className="bg-surface-container-low rounded-lg border border-outline-variant/15 p-md flex flex-col justify-between">
             <div>
               <h3 className="font-headline-md text-primary">Metode Pembayaran</h3>
-              <p className="text-on-surface-variant text-label-sm">Distribusi tipe transaksi (30 hari terakhir)</p>
+              <p className="text-on-surface-variant text-label-sm">Distribusi tipe transaksi (semua waktu)</p>
             </div>
             <div className="space-y-xl my-md">
               {/* Digital Payments */}

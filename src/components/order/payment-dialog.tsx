@@ -93,7 +93,7 @@ export function PaymentDialog() {
     const customerPhone = activeOrder.customers?.whatsapp_no || selectedCustomer?.whatsapp_no || newCustomerData?.whatsapp_no || "-";
 
     const trackUrl = `${window.location.origin}/track?invoice=${activeOrder.invoice_no}`;
-    
+
     let message = "";
 
     if (midtransUrl && activeOrder.payment_status !== 'PAID') {
@@ -196,7 +196,7 @@ export function PaymentDialog() {
                       <QrCode className="w-10 h-10" />
                     </div>
                     <div className="text-center">
-                      <span className="font-bold text-title-md block mb-1">QRIS / E-Wallet</span>
+                      <span className="font-bold text-title-md block mb-1">QRIS</span>
                       <span className="text-label-sm opacity-80 font-normal">Bayar Non-Tunai</span>
                     </div>
                   </button>
@@ -281,7 +281,7 @@ export function PaymentDialog() {
                       </div>
                     </div>
 
-                    <h4 className="text-title-lg font-bold text-on-surface mb-2 tracking-tight">QRIS & E-Wallet</h4>
+                    <h4 className="text-title-lg font-bold text-on-surface mb-2 tracking-tight">QRIS</h4>
                     <p className="text-on-surface-variant text-body-md px-4 mb-8 leading-relaxed">
                       Powered by <span className="font-semibold text-tertiary">Midtrans</span>. Generate a secure QR code to accept payments via Gopay, ShopeePay, atau aplikasi QRIS lainnya.
                     </p>

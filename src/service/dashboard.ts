@@ -34,18 +34,24 @@ export interface DashboardStats {
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   const supabase = createClient();
   const now = new Date();
-  
+
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
 
-  // 1. Fetch recent orders for revenue, count stats, and payment distribution
-  const { data: recentOrders, error: recentError } = await supabase
+  // 1. Fetch ALL orders with payments — aligned with Laporan Keuangan logic
+  const { data: allOrders, error: allOrdersError } = await supabase
     .from('orders')
-    .select('id, paid_amount, created_at, laundry_status, payment_status, order_payments(payment_type, amount)')
-    .gte('created_at', sixtyDaysAgo);
+    .select('id, total_amount, remaining_amount, payment_status, laundry_status, created_at, order_payments(payment_type, amount, midtrans_status)');
 
-  if (recentError) throw new Error(recentError.message);
+  if (allOrdersError) throw new Error(allOrdersError.message);
 
+  // All-time totals (matching Laporan Keuangan)
+  let totalRevenue = 0;
+  let totalTunai = 0;
+  let totalNonTunai = 0;
+  let totalPiutang = 0;
+
+  // 30-day window for trend/percentage comparison
   let currentRevenue = 0;
   let prevRevenue = 0;
   let currentOrders = 0;
@@ -55,47 +61,74 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   let prevTunai = 0;
   let prevNonTunai = 0;
 
-  recentOrders?.forEach(order => {
-    const isCompletedAndPaid = order.laundry_status === LaundryStatus.COMPLETED && order.payment_status === PaymentStatus.PAID;
+  allOrders?.forEach(order => {
+    // Sum piutang from ALL orders with outstanding balance
+    totalPiutang += Number(order.remaining_amount || 0);
 
-    if (order.created_at >= thirtyDaysAgo) {
-      if (isCompletedAndPaid) {
-        currentRevenue += Number(order.paid_amount || 0);
-        // Distribute the payments for this order
-        order.order_payments?.forEach((payment: any) => {
-           if (payment.payment_type === 'TUNAI') currentTunai += Number(payment.amount || 0);
-           if (payment.payment_type === 'NON_TUNAI') currentNonTunai += Number(payment.amount || 0);
-        });
+    // Order count for trend (30-day window)
+    if (order.created_at >= sixtyDaysAgo) {
+      if (order.created_at >= thirtyDaysAgo) {
+        currentOrders++;
+      } else {
+        prevOrders++;
       }
-      currentOrders++;
-    } else {
-      if (isCompletedAndPaid) {
-        prevRevenue += Number(order.paid_amount || 0);
-        // Distribute the payments for previous period
-        order.order_payments?.forEach((payment: any) => {
-           if (payment.payment_type === 'TUNAI') prevTunai += Number(payment.amount || 0);
-           if (payment.payment_type === 'NON_TUNAI') prevNonTunai += Number(payment.amount || 0);
-        });
-      }
-      prevOrders++;
     }
+
+    // Sum payments using same logic as Laporan Keuangan
+    order.order_payments?.forEach((payment: any) => {
+      const isSuccess =
+        payment.payment_type === 'TUNAI' ||
+        (payment.payment_type === 'NON_TUNAI' &&
+          (payment.midtrans_status === 'settlement' ||
+            payment.midtrans_status === 'capture' ||
+            !payment.midtrans_status));
+
+      if (isSuccess) {
+        const amount = Number(payment.amount || 0);
+
+        // All-time totals
+        totalRevenue += amount;
+        if (payment.payment_type === 'TUNAI') totalTunai += amount;
+        else totalNonTunai += amount;
+
+        // 30-day trend breakdown
+        if (order.created_at >= sixtyDaysAgo) {
+          if (order.created_at >= thirtyDaysAgo) {
+            currentRevenue += amount;
+            if (payment.payment_type === 'TUNAI') currentTunai += amount;
+            else currentNonTunai += amount;
+          } else {
+            prevRevenue += amount;
+            if (payment.payment_type === 'TUNAI') prevTunai += amount;
+            else prevNonTunai += amount;
+          }
+        }
+      }
+    });
   });
 
-  const totalCurrentPayment = currentTunai + currentNonTunai;
-  const tunaiPercentage = totalCurrentPayment > 0 ? (currentTunai / totalCurrentPayment) * 100 : 0;
-  const nonTunaiPercentage = totalCurrentPayment > 0 ? (currentNonTunai / totalCurrentPayment) * 100 : 0;
+  // Payment distribution percentages based on all-time totals
+  const totalAllPayments = totalTunai + totalNonTunai;
+  const tunaiPercentage = totalAllPayments > 0 ? (totalTunai / totalAllPayments) * 100 : 0;
+  const nonTunaiPercentage = totalAllPayments > 0 ? (totalNonTunai / totalAllPayments) * 100 : 0;
 
+  // QRIS growth: 30-day trend in non-tunai percentage
+  const totalCurrPayment = currentTunai + currentNonTunai;
+  const currNonTunaiPercentage = totalCurrPayment > 0 ? (currentNonTunai / totalCurrPayment) * 100 : 0;
   const totalPrevPayment = prevTunai + prevNonTunai;
   const prevNonTunaiPercentage = totalPrevPayment > 0 ? (prevNonTunai / totalPrevPayment) * 100 : 0;
-  const qrisGrowth = nonTunaiPercentage - prevNonTunaiPercentage;
+  const qrisGrowth = currNonTunaiPercentage - prevNonTunaiPercentage;
 
-  const revenuePercentage = prevRevenue === 0 
-    ? (currentRevenue > 0 ? 100 : 0) 
-    : ((currentRevenue - prevRevenue) / prevRevenue) * 100;
+  // Revenue trend percentage (30-day vs previous 30-day)
+  const revenuePercentage =
+    prevRevenue === 0
+      ? currentRevenue > 0 ? 100 : 0
+      : ((currentRevenue - prevRevenue) / prevRevenue) * 100;
 
-  const ordersPercentage = prevOrders === 0 
-    ? (currentOrders > 0 ? 100 : 0) 
-    : ((currentOrders - prevOrders) / prevOrders) * 100;
+  const ordersPercentage =
+    prevOrders === 0
+      ? currentOrders > 0 ? 100 : 0
+      : ((currentOrders - prevOrders) / prevOrders) * 100;
 
   // 2. Fetch Active Laundry Count
   const { count: activeLaundryCount, error: activeError } = await supabase
@@ -105,17 +138,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
 
   if (activeError) throw new Error(activeError.message);
 
-  // 3. Fetch Unpaid Amount (DP Only)
-  const { data: unpaidOrders, error: unpaidError } = await supabase
-    .from('orders')
-    .select('remaining_amount')
-    .eq('payment_status', PaymentStatus.DP);
-
-  if (unpaidError) throw new Error(unpaidError.message);
-
-  const unpaidAmount = unpaidOrders?.reduce((acc, order) => acc + Number(order.remaining_amount || 0), 0) || 0;
-
-  // 4. Fetch breakdown for processing and waiting
+  // 3. Fetch breakdown for processing and waiting
   const { data: statusOrders, error: statusError } = await supabase
     .from('orders')
     .select('laundry_status')
@@ -130,7 +153,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     if (order.laundry_status === LaundryStatus.WAITING_PAYMENT) waitingCount++;
   });
 
-  // 5. Fetch customers stats
+  // 4. Fetch customers stats
   const { count: totalCustomersCount, error: totalCustError } = await supabase
     .from('customers')
     .select('*', { count: 'exact', head: true });
@@ -155,11 +178,12 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     }
   });
 
-  const customersPercentage = prevCustomers === 0 
-    ? (currentCustomers > 0 ? 100 : 0) 
-    : ((currentCustomers - prevCustomers) / prevCustomers) * 100;
+  const customersPercentage =
+    prevCustomers === 0
+      ? currentCustomers > 0 ? 100 : 0
+      : ((currentCustomers - prevCustomers) / prevCustomers) * 100;
 
-  // 6. Fetch chart data (weekly: last 7 days, monthly: last 6 months)
+  // 5. Fetch chart data (last 6 months)
   const sixMonthsAgoStr = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString();
 
   const { data: chartOrders, error: chartError } = await supabase
@@ -173,7 +197,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   const weeklyMap = new Map<string, { label: string; value: number }>();
   const monthlyMap = new Map<string, { label: string; value: number }>();
 
-  // Initialize daily map (Today, 8 blocks of 3 hours)
+  // Initialize daily map (today, 8 blocks of 3 hours)
   const timeBlocks = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
   timeBlocks.forEach(block => {
     dailyMap.set(block, { label: block, value: 0 });
@@ -228,35 +252,33 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     }
   });
 
-  // 7. Payment distribution is now calculated in step 1 to ensure it matches revenue exactly.
-
   return {
     revenue: {
-      current: currentRevenue,
-      percentage: revenuePercentage
+      current: totalRevenue,
+      percentage: revenuePercentage,
     },
     orders: {
       current: currentOrders,
       percentage: ordersPercentage,
       processing: processingCount,
-      waiting: waitingCount
+      waiting: waitingCount,
     },
     customers: {
       total: totalCustomersCount || 0,
       newThisMonth: currentCustomers,
-      percentage: customersPercentage
+      percentage: customersPercentage,
     },
     activeLaundry: activeLaundryCount || 0,
-    unpaidAmount,
+    unpaidAmount: totalPiutang,
     chartData: {
       daily: Array.from(dailyMap.values()),
       weekly: Array.from(weeklyMap.values()),
-      monthly: Array.from(monthlyMap.values())
+      monthly: Array.from(monthlyMap.values()),
     },
     paymentDistribution: {
-      tunai: { amount: currentTunai, percentage: tunaiPercentage },
-      nonTunai: { amount: currentNonTunai, percentage: nonTunaiPercentage },
-      qrisGrowth
-    }
+      tunai: { amount: totalTunai, percentage: tunaiPercentage },
+      nonTunai: { amount: totalNonTunai, percentage: nonTunaiPercentage },
+      qrisGrowth,
+    },
   };
 };

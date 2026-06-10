@@ -79,6 +79,7 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "/services",
     "/taxes",
     "/users",
+    "/laporan-keuangan",
     "/" 
   ],
   [Role.OWNER]: [
@@ -89,6 +90,7 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "/services",
     "/taxes",
     "/users",
+    "/laporan-keuangan",
     "/" 
   ],
   [Role.STAFF]: [
