@@ -25,15 +25,15 @@ export default function UsersPage() {
     );
   }, [users, searchTerm]);
 
-  // Check if user is superadmin
-  if (user && !user.roles?.includes(Role.SUPERADMIN)) {
+  // Check if user is superadmin or owner
+  if (user && !user.roles?.includes(Role.SUPERADMIN) && !user.roles?.includes(Role.OWNER)) {
     return (
       <div className="p-margin-desktop w-full h-full flex flex-col items-center justify-center space-y-4">
         <div className="w-16 h-16 bg-error-container/20 text-error rounded-full flex items-center justify-center">
           <AlertTriangle className="w-8 h-8" />
         </div>
         <h2 className="font-display text-title-lg font-bold text-on-surface">Akses Ditolak</h2>
-        <p className="text-body-md text-on-surface-variant">Hanya Superadmin yang dapat mengakses halaman ini.</p>
+        <p className="text-body-md text-on-surface-variant">Hanya Superadmin dan Owner yang dapat mengakses halaman ini.</p>
       </div>
     );
   }

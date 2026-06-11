@@ -48,7 +48,7 @@ export default function RegisterPage() {
           <div className="relative z-10 mt-16">
             <div className="p-6 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm">
               <p className="text-on-primary font-body-lg italic">
-                "Bergabung dengan 500+ pengusaha laundry yang telah mengotomasi bisnis mereka dengan Mari Laundry."
+                "Sistem Point of Sale terpadu untuk mengoptimalkan efisiensi operasional dan layanan pelanggan di Mari Laundry."
               </p>
             </div>
           </div>
